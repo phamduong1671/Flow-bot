@@ -13,9 +13,11 @@ import {
   MousePointer2,
   Play,
   Plus,
+  RotateCcw,
   Route,
   Trash2,
   WandSparkles,
+  X,
 } from 'lucide-react';
 
 const CANVAS_WIDTH = 4200;
@@ -25,6 +27,8 @@ const NODE_HEIGHT = 112;
 const HEADER_HEIGHT = 76;
 const MIN_ZOOM = 0.45;
 const MAX_ZOOM = 1.8;
+const MAX_RUN_STEPS = 80;
+const FLOW_STORAGE_KEY = 'flow-bot-builder-state';
 
 const NODE_TYPES = {
   start: {
@@ -70,15 +74,29 @@ const NODE_TYPES = {
 };
 
 const initialNodes = [
-  createNode('start', 120, 120),
-  createNode('message', 390, 120),
-  createNode('question', 660, 120),
+  createNode('start', CANVAS_WIDTH / 2 - NODE_WIDTH / 2, CANVAS_HEIGHT / 2 - NODE_HEIGHT / 2),
 ];
 
-const initialEdges = [
-  { id: 'edge-1', source: initialNodes[0].id, target: initialNodes[1].id, label: 'next' },
-  { id: 'edge-2', source: initialNodes[1].id, target: initialNodes[2].id, label: 'next' },
-];
+const initialEdges = [];
+
+function loadSavedFlow() {
+  try {
+    const savedFlow = window.localStorage.getItem(FLOW_STORAGE_KEY);
+    if (!savedFlow) return { nodes: initialNodes, edges: initialEdges };
+
+    const parsedFlow = JSON.parse(savedFlow);
+    if (!Array.isArray(parsedFlow.nodes) || !Array.isArray(parsedFlow.edges)) {
+      return { nodes: initialNodes, edges: initialEdges };
+    }
+
+    return {
+      nodes: parsedFlow.nodes,
+      edges: parsedFlow.edges,
+    };
+  } catch {
+    return { nodes: initialNodes, edges: initialEdges };
+  }
+}
 
 function createNode(type, x, y) {
   const spec = NODE_TYPES[type];
@@ -106,11 +124,12 @@ function App() {
   const nodeDragPositionRef = useRef(null);
   const suppressNodeClickRef = useRef(false);
   const selectionMovedRef = useRef(false);
+  const canvasActiveRef = useRef(false);
   const panFrameRef = useRef(null);
   const panPositionRef = useRef(null);
 
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const [nodes, setNodes] = useState(() => loadSavedFlow().nodes);
+  const [edges, setEdges] = useState(() => loadSavedFlow().edges);
   const [selectedIds, setSelectedIds] = useState([]);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
@@ -122,6 +141,12 @@ function App() {
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [selectionBox, setSelectionBox] = useState(null);
+  const [runnerOpen, setRunnerOpen] = useState(false);
+  const [runnerMessages, setRunnerMessages] = useState([]);
+  const [runnerStatus, setRunnerStatus] = useState('idle');
+  const [runnerInput, setRunnerInput] = useState('');
+  const [runnerContext, setRunnerContext] = useState({ variables: {}, actions: [] });
+  const [waitingNodeId, setWaitingNodeId] = useState(null);
 
   const selectedNode = selectedIds.length === 1 ? nodes.find((node) => node.id === selectedIds[0]) : null;
   const selectedCount = selectedIds.length;
@@ -147,6 +172,20 @@ function App() {
   }, [edges, nodes]);
 
   const botJson = useMemo(() => buildScenario(nodes, edges), [nodes, edges]);
+
+  useEffect(() => {
+    window.localStorage.setItem(FLOW_STORAGE_KEY, JSON.stringify({ nodes, edges }));
+  }, [nodes, edges]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    requestAnimationFrame(() => {
+      canvas.scrollLeft = CANVAS_WIDTH / 2 - canvas.clientWidth / 2;
+      canvas.scrollTop = CANVAS_HEIGHT / 2 - canvas.clientHeight / 2;
+    });
+  }, []);
 
   function screenToCanvas(clientX, clientY) {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -265,6 +304,8 @@ function App() {
   }
 
   function handleCanvasPointerDown(event) {
+    canvasActiveRef.current = true;
+
     if (event.button === 0) {
       startSelection(event);
       return;
@@ -391,6 +432,16 @@ function App() {
     );
   }
 
+  function updateSelectedEdge(path, value) {
+    if (!selectedEdgeId) return;
+
+    setEdges((current) =>
+      current.map((edge) =>
+        edge.id === selectedEdgeId ? { ...edge, [path]: value } : edge,
+      ),
+    );
+  }
+
   function deleteSelectedNodes() {
     if (selectedIds.length === 0) return;
     setNodes((current) => current.filter((node) => !selectedIds.includes(node.id)));
@@ -416,7 +467,17 @@ function App() {
         activeElement?.tagName === 'TEXTAREA' ||
         activeElement?.isContentEditable;
 
-      if (isTyping || (selectedIds.length === 0 && !selectedEdgeId)) return;
+      if (isTyping) return;
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a' && canvasActiveRef.current) {
+        event.preventDefault();
+        setSelectedIds(nodes.map((node) => node.id));
+        setSelectedEdgeId(null);
+        setRightPanelOpen(nodes.length > 0);
+        return;
+      }
+
+      if (selectedIds.length === 0 && !selectedEdgeId) return;
 
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
@@ -432,7 +493,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIds, selectedEdgeId]);
+  }, [nodes, selectedIds, selectedEdgeId]);
 
   function handleOutputClick(nodeId) {
     setConnectingFrom(connectingFrom === nodeId ? null : nodeId);
@@ -467,6 +528,148 @@ function App() {
 
   function handleRunFlow() {
     window.alert('Chức năng Run Flow sẽ có trong bản cập nhật sau.');
+  }
+
+  function startRunner() {
+    const startNode = nodes.find((node) => node.type === 'start');
+
+    setRunnerOpen(true);
+    setRunnerInput('');
+    setWaitingNodeId(null);
+
+    if (!startNode) {
+      setRunnerStatus('error');
+      setRunnerMessages([
+        createRunnerMessage('error', 'Flow needs one Start node before it can run.'),
+      ]);
+      return;
+    }
+
+    const nextContext = { variables: {}, actions: [] };
+    setRunnerContext(nextContext);
+    setRunnerMessages([]);
+    runFromNode(startNode.id, nextContext, []);
+  }
+
+  function resetRunner() {
+    setRunnerOpen(false);
+    setRunnerMessages([]);
+    setRunnerStatus('idle');
+    setRunnerInput('');
+    setRunnerContext({ variables: {}, actions: [] });
+    setWaitingNodeId(null);
+  }
+
+  function runFromNode(startNodeId, context, leadingMessages) {
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+    const outgoing = getOutgoingEdges(edges);
+    const nextContext = {
+      variables: { ...context.variables },
+      actions: [...context.actions],
+    };
+    const nextMessages = [...leadingMessages];
+    let currentNodeId = startNodeId;
+
+    setRunnerStatus('running');
+
+    for (let step = 0; step < MAX_RUN_STEPS; step += 1) {
+      if (!currentNodeId) {
+        finishRunner(nextContext, nextMessages, 'Flow finished.');
+        return;
+      }
+
+      const node = nodeMap.get(currentNodeId);
+      if (!node) {
+        failRunner(nextContext, nextMessages, `Node not found: ${currentNodeId}`);
+        return;
+      }
+
+      const nodeEdges = outgoing[node.id] || [];
+
+      if (node.type === 'start' || node.type === 'message') {
+        if (node.data.message) {
+          nextMessages.push(createRunnerMessage('bot', resolveTemplate(node.data.message, nextContext.variables)));
+        }
+        currentNodeId = pickNextEdge(nodeEdges)?.target;
+        continue;
+      }
+
+      if (node.type === 'question') {
+        nextMessages.push(createRunnerMessage('bot', resolveTemplate(node.data.message || 'Please enter a value.', nextContext.variables)));
+        setRunnerContext(nextContext);
+        setRunnerMessages((current) => [...current, ...nextMessages]);
+        setWaitingNodeId(node.id);
+        setRunnerStatus('waiting');
+        return;
+      }
+
+      if (node.type === 'condition') {
+        const result = evaluateCondition(node.data, nextContext.variables);
+        nextMessages.push(
+          createRunnerMessage(
+            'system',
+            `Condition ${node.data.variable || 'value'} ${node.data.condition || ''}: ${result ? 'true' : 'false'}`,
+          ),
+        );
+        currentNodeId = pickConditionEdge(nodeEdges, result)?.target;
+        continue;
+      }
+
+      if (node.type === 'action') {
+        const payload = resolveTemplate(node.data.payload || '{}', nextContext.variables);
+        nextContext.actions.push({ action: node.data.action, payload });
+        nextMessages.push(createRunnerMessage('system', `Action: ${node.data.action || 'unnamed'} ${payload}`));
+        currentNodeId = pickNextEdge(nodeEdges)?.target;
+        continue;
+      }
+
+      failRunner(nextContext, nextMessages, `Unsupported node type: ${node.type}`);
+      return;
+    }
+
+    failRunner(nextContext, nextMessages, 'Flow stopped because it exceeded the maximum run steps.');
+  }
+
+  function finishRunner(context, messages, text) {
+    setRunnerContext(context);
+    setRunnerMessages((current) => [...current, ...messages, createRunnerMessage('system', text)]);
+    setWaitingNodeId(null);
+    setRunnerStatus('ended');
+  }
+
+  function failRunner(context, messages, text) {
+    setRunnerContext(context);
+    setRunnerMessages((current) => [...current, ...messages, createRunnerMessage('error', text)]);
+    setWaitingNodeId(null);
+    setRunnerStatus('error');
+  }
+
+  function handleRunnerSubmit(event) {
+    event.preventDefault();
+    if (runnerStatus !== 'waiting' || !waitingNodeId) return;
+
+    const answer = runnerInput.trim();
+    if (!answer) return;
+
+    const questionNode = nodes.find((node) => node.id === waitingNodeId);
+    if (!questionNode) {
+      failRunner(runnerContext, [createRunnerMessage('user', answer)], 'Waiting question node was removed.');
+      return;
+    }
+
+    const variable = questionNode.data.variable || questionNode.id;
+    const nextContext = {
+      ...runnerContext,
+      variables: {
+        ...runnerContext.variables,
+        [variable]: answer,
+      },
+    };
+    const nextEdge = pickNextEdge(edges.filter((edge) => edge.source === questionNode.id));
+
+    setRunnerInput('');
+    setWaitingNodeId(null);
+    runFromNode(nextEdge?.target, nextContext, [createRunnerMessage('user', answer)]);
   }
 
   async function copyJson() {
@@ -552,7 +755,7 @@ function App() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={handleRunFlow}
+                onClick={startRunner}
                 className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 <Play size={18} />
@@ -575,6 +778,12 @@ function App() {
             onDragOver={(event) => event.preventDefault()}
             onContextMenu={(event) => event.preventDefault()}
             onPointerDown={handleCanvasPointerDown}
+            onPointerEnter={() => {
+              canvasActiveRef.current = true;
+            }}
+            onPointerLeave={() => {
+              canvasActiveRef.current = false;
+            }}
             className={`canvas-grid relative min-h-0 flex-1 overflow-auto bg-[#f8fafc] ${isPanning || isNodeDragging ? 'cursor-grabbing' : 'cursor-default'}`}
           >
             <div className="relative" style={{ height: CANVAS_HEIGHT * zoom, width: CANVAS_WIDTH * zoom }}>
@@ -660,10 +869,82 @@ function App() {
               </div>
             </div>
           </div>
+          {runnerOpen && (
+            <section className="absolute bottom-5 left-1/2 z-30 flex h-[460px] w-[420px] -translate-x-1/2 flex-col rounded-lg border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.32)]">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-800">Flow Runner</div>
+                  <div className="text-xs capitalize text-slate-500">{runnerStatus}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={startRunner}
+                    className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    title="Restart runner"
+                  >
+                    <RotateCcw size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetRunner}
+                    className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    title="Close runner"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 space-y-2 overflow-auto bg-slate-50 p-4">
+                {runnerMessages.length === 0 ? (
+                  <div className="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
+                    Click Run to start the flow.
+                  </div>
+                ) : (
+                  runnerMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`max-w-[86%] rounded-lg px-3 py-2 text-sm ${
+                        message.role === 'user'
+                          ? 'ml-auto bg-slate-950 text-white'
+                          : message.role === 'bot'
+                            ? 'bg-white text-slate-800 shadow-sm'
+                            : message.role === 'error'
+                              ? 'bg-rose-50 text-rose-700'
+                              : 'bg-indigo-50 text-indigo-800'
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <form onSubmit={handleRunnerSubmit} className="border-t border-slate-200 p-3">
+                <div className="flex gap-2">
+                  <input
+                    value={runnerInput}
+                    onChange={(event) => setRunnerInput(event.target.value)}
+                    disabled={runnerStatus !== 'waiting'}
+                    placeholder={runnerStatus === 'waiting' ? 'Type your answer...' : 'Runner is not waiting for input'}
+                    className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-slate-900 disabled:bg-slate-100"
+                  />
+                  <button
+                    type="submit"
+                    disabled={runnerStatus !== 'waiting'}
+                    className="h-10 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    Send
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
         </div>
 
         <aside
-          className={`absolute right-0 z-20 flex w-[340px] min-h-0 flex-col border-l border-slate-200 bg-white shadow-panel transition-transform ${rightPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`absolute right-0 z-20 flex w-[340px] min-h-0 flex-col overflow-visible border-l border-slate-200 bg-white shadow-panel transition-transform ${rightPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
           style={{ top: HEADER_HEIGHT, height: `calc(100% - ${HEADER_HEIGHT}px)` }}
         >
           <button
@@ -674,39 +955,49 @@ function App() {
           >
             {rightPanelOpen ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
-          {selectedCount > 0 && (
-            <div className="border-b border-slate-200 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <MousePointer2 size={18} />
-                  Inspector
+          <div className="min-h-0 flex-1 overflow-auto">
+            {selectedCount > 0 && (
+              <div className="border-b border-slate-200 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <MousePointer2 size={18} />
+                    Inspector
+                  </div>
+                  <button
+                    type="button"
+                    onClick={deleteSelectedNodes}
+                    className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                    title="Delete selected nodes"
+                  >
+                    <Trash2 size={17} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={deleteSelectedNodes}
-                  className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                  title="Delete selected nodes"
-                >
-                  <Trash2 size={17} />
-                </button>
-              </div>
 
-              {selectedNode ? (
-                <NodeEditor node={selectedNode} onChange={updateSelectedNode} />
-              ) : (
-                <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                  {selectedCount} nodes selected
-                </div>
-              )}
-            </div>
-          )}
+                {selectedNode ? (
+                  <NodeEditor node={selectedNode} onChange={updateSelectedNode} />
+                ) : (
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                    {selectedCount} nodes selected
+                  </div>
+                )}
+              </div>
+            )}
 
           {hasSelection && (
             <div className="border-b border-slate-200 p-4">
               <div className="mb-3 text-sm font-semibold text-slate-700">Connections</div>
               {selectedEdge && (
-                <div className="mb-3 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-950">
-                  Selected: {selectedEdge.label}
+                <div className="mb-3 space-y-2 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-950">
+                  <div className="font-semibold">Selected connection</div>
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] font-semibold uppercase text-indigo-700">Label</span>
+                    <input
+                      value={selectedEdge.label}
+                      onChange={(event) => updateSelectedEdge('label', event.target.value)}
+                      className="h-9 w-full rounded-md border border-indigo-200 bg-white px-2 text-xs text-slate-900 outline-none focus:border-indigo-500"
+                      placeholder="next, true, false"
+                    />
+                  </label>
                 </div>
               )}
               <div className="max-h-40 space-y-2 overflow-auto pr-1">
@@ -750,7 +1041,7 @@ function App() {
             </div>
           )}
 
-          <div className="flex min-h-0 flex-1 flex-col p-4">
+            <div className="flex h-[360px] flex-col p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="text-sm font-semibold text-slate-700">JSON output</div>
               <div className="flex gap-2">
@@ -772,9 +1063,10 @@ function App() {
                 </button>
               </div>
             </div>
-            <pre className="min-h-0 flex-1 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-emerald-100">
+              <pre className="min-h-0 flex-1 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-emerald-100">
               {jsonOutput || JSON.stringify(botJson, null, 2)}
             </pre>
+          </div>
           </div>
         </aside>
       </section>
@@ -913,6 +1205,62 @@ function getNodesInBox(nodes, box) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function createRunnerMessage(role, text) {
+  return {
+    id: `runner-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+    role,
+    text,
+  };
+}
+
+function getOutgoingEdges(edges) {
+  return edges.reduce((map, edge) => {
+    map[edge.source] = map[edge.source] || [];
+    map[edge.source].push(edge);
+    return map;
+  }, {});
+}
+
+function pickNextEdge(edges) {
+  return edges.find((edge) => edge.label?.toLowerCase() === 'next') || edges[0];
+}
+
+function pickConditionEdge(edges, result) {
+  const preferredLabel = result ? 'true' : 'false';
+  const fallbackIndex = result ? 0 : 1;
+
+  return (
+    edges.find((edge) => edge.label?.toLowerCase() === preferredLabel) ||
+    edges[fallbackIndex] ||
+    edges[0]
+  );
+}
+
+function evaluateCondition(data, variables) {
+  const variableValue = String(variables[data.variable] ?? '').trim().toLowerCase();
+  const condition = String(data.condition || '').trim().toLowerCase();
+
+  if (!condition) return Boolean(variableValue);
+
+  if (condition.startsWith('equals ')) {
+    return variableValue === condition.replace('equals ', '').trim();
+  }
+
+  if (condition.startsWith('not equals ')) {
+    return variableValue !== condition.replace('not equals ', '').trim();
+  }
+
+  if (condition.startsWith('contains ')) {
+    return variableValue.includes(condition.replace('contains ', '').trim());
+  }
+
+  return variableValue === condition;
+}
+
+function resolveTemplate(value, variables) {
+  return String(value).replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, key) => variables[key] ?? '');
 }
 
 function buildScenario(nodes, edges) {
