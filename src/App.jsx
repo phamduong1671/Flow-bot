@@ -465,6 +465,10 @@ function App() {
     setRightPanelOpen(true);
   }
 
+  function handleRunFlow() {
+    window.alert('Chức năng Run Flow sẽ có trong bản cập nhật sau.');
+  }
+
   async function copyJson() {
     const text = jsonOutput || JSON.stringify(botJson, null, 2);
     await navigator.clipboard.writeText(text);
@@ -546,9 +550,14 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600">
-                {Math.round(zoom * 100)}%
-              </span>
+              <button
+                type="button"
+                onClick={handleRunFlow}
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                <Play size={18} />
+                Run
+              </button>
               <button
                 type="button"
                 onClick={buildJson}
