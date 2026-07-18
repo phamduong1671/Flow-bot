@@ -21,7 +21,7 @@ export function FlowNode({
         onSelect(node.id);
       }}
       onPointerDown={(event) => {
-        if (event.target.closest('[data-port]')) return;
+        if ((event.target as Element).closest('[data-port]')) return;
         onPointerDown(node.id, event);
       }}
       className={`absolute w-56 select-none rounded-lg border-2 bg-white shadow-panel will-change-transform transition-[border-color,box-shadow] ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${selected ? 'border-slate-950 ring-2 ring-slate-300' : 'border-slate-200'} ${connecting ? 'ring-4 ring-indigo-200' : ''}`}

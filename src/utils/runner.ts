@@ -1,5 +1,23 @@
 import { MAX_RUN_STEPS } from '../constants';
 
+type FlowNode = {
+  id: string;
+  type: string;
+  data: Record<string, string>;
+};
+
+type FlowEdge = {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+};
+
+type RunnerContext = {
+  variables: Record<string, string>;
+  actions: Array<{ action: string; payload: string }>;
+};
+
 export function createRunnerMessage(role, text) {
   return {
     id: `runner-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
@@ -53,8 +71,18 @@ export function resolveTemplate(value, variables) {
   return String(value).replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, key) => variables[key] ?? '');
 }
 
-export function executeFlowUntilPause({ startNodeId, nodes, edges, context }) {
-  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+export function executeFlowUntilPause({
+  startNodeId,
+  nodes,
+  edges,
+  context,
+}: {
+  startNodeId?: string;
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  context: RunnerContext;
+}) {
+  const nodeMap = new Map<string, FlowNode>(nodes.map((node) => [node.id, node]));
   const outgoing = getOutgoingEdges(edges);
   const nextContext = { variables: { ...context.variables }, actions: [...context.actions] };
   const messages = [];

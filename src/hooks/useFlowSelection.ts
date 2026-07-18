@@ -44,7 +44,7 @@ export function useFlowSelection({ nodes, edges, setNodes, setEdges }) {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      const activeElement = document.activeElement;
+      const activeElement = document.activeElement as HTMLElement | null;
       const isTyping =
         activeElement?.tagName === 'INPUT' ||
         activeElement?.tagName === 'TEXTAREA' ||
