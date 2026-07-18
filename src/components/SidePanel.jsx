@@ -1,5 +1,12 @@
-import React from 'react';
-import { Check, ChevronLeft, ChevronRight, Copy, Download, MousePointer2, Trash2 } from 'lucide-react';
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Download,
+  MousePointer2,
+  Trash2,
+} from 'lucide-react';
 import { HEADER_HEIGHT } from '../constants';
 import { NodeEditor } from './NodeEditor';
 
@@ -45,7 +52,12 @@ export function SidePanel({
                 <MousePointer2 size={18} />
                 Inspector
               </div>
-              <button type="button" onClick={onDeleteNodes} className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Delete selected nodes">
+              <button
+                type="button"
+                onClick={onDeleteNodes}
+                className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                title="Delete selected nodes"
+              >
                 <Trash2 size={17} />
               </button>
             </div>
@@ -76,10 +88,20 @@ export function SidePanel({
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="text-sm font-semibold text-slate-700">JSON output</div>
             <div className="flex gap-2">
-              <button type="button" onClick={onCopyJson} className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50" title="Copy JSON">
+              <button
+                type="button"
+                onClick={onCopyJson}
+                className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                title="Copy JSON"
+              >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
               </button>
-              <button type="button" onClick={onDownloadJson} className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50" title="Download JSON">
+              <button
+                type="button"
+                onClick={onDownloadJson}
+                className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                title="Download JSON"
+              >
                 <Download size={16} />
               </button>
             </div>
@@ -94,7 +116,8 @@ export function SidePanel({
 }
 
 function ConnectionList(props) {
-  const { edges, nodes, selectedEdge, selectedEdgeId, onSelectEdge, onUpdateEdge, onRemoveEdge } = props;
+  const { edges, nodes, selectedEdge, selectedEdgeId, onSelectEdge, onUpdateEdge, onRemoveEdge } =
+    props;
 
   return (
     <div className="border-b border-slate-200 p-4">
@@ -103,8 +126,15 @@ function ConnectionList(props) {
         <div className="mb-3 space-y-2 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-950">
           <div className="font-semibold">Selected connection</div>
           <label className="block">
-            <span className="mb-1 block text-[11px] font-semibold uppercase text-indigo-700">Label</span>
-            <input value={selectedEdge.label} onChange={(event) => onUpdateEdge('label', event.target.value)} className="h-9 w-full rounded-md border border-indigo-200 bg-white px-2 text-xs text-slate-900 outline-none focus:border-indigo-500" placeholder="next, true, false" />
+            <span className="mb-1 block text-[11px] font-semibold uppercase text-indigo-700">
+              Label
+            </span>
+            <input
+              value={selectedEdge.label}
+              onChange={(event) => onUpdateEdge('label', event.target.value)}
+              className="h-9 w-full rounded-md border border-indigo-200 bg-white px-2 text-xs text-slate-900 outline-none focus:border-indigo-500"
+              placeholder="next, true, false"
+            />
           </label>
         </div>
       )}
@@ -113,7 +143,16 @@ function ConnectionList(props) {
         {edges.length === 0 ? (
           <p className="text-sm text-slate-500">No connections.</p>
         ) : (
-          edges.map((edge) => <ConnectionItem key={edge.id} edge={edge} nodes={nodes} selected={selectedEdgeId === edge.id} onSelectEdge={onSelectEdge} onRemoveEdge={onRemoveEdge} />)
+          edges.map((edge) => (
+            <ConnectionItem
+              key={edge.id}
+              edge={edge}
+              nodes={nodes}
+              selected={selectedEdgeId === edge.id}
+              onSelectEdge={onSelectEdge}
+              onRemoveEdge={onRemoveEdge}
+            />
+          ))
         )}
       </div>
     </div>
@@ -125,16 +164,28 @@ function ConnectionItem({ edge, nodes, selected, onSelectEdge, onRemoveEdge }) {
   const target = nodes.find((node) => node.id === edge.target);
 
   return (
-    <div role="button" tabIndex={0} onClick={() => onSelectEdge(edge.id)} onKeyDown={(event) => {
-      if (event.key === 'Enter' || event.key === ' ') onSelectEdge(edge.id);
-    }} className={`flex items-center justify-between gap-2 rounded-md border px-2 py-2 text-xs ${selected ? 'border-indigo-300 bg-indigo-50 text-indigo-950' : 'border-slate-200'}`}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelectEdge(edge.id)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') onSelectEdge(edge.id);
+      }}
+      className={`flex items-center justify-between gap-2 rounded-md border px-2 py-2 text-xs ${selected ? 'border-indigo-300 bg-indigo-50 text-indigo-950' : 'border-slate-200'}`}
+    >
       <span className="min-w-0 truncate">
-        {source?.label || 'Missing'} <ChevronRight className="inline" size={13} /> {target?.label || 'Missing'}
+        {source?.label || 'Missing'} <ChevronRight className="inline" size={13} />{' '}
+        {target?.label || 'Missing'}
       </span>
-      <button type="button" onClick={(event) => {
-        event.stopPropagation();
-        onRemoveEdge(edge.id);
-      }} className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600" title="Delete connection">
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onRemoveEdge(edge.id);
+        }}
+        className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+        title="Delete connection"
+      >
         <Trash2 size={14} />
       </button>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useFlowSelection({ nodes, edges, setNodes, setEdges }) {
   const canvasActiveRef = useRef(false);
@@ -6,29 +6,35 @@ export function useFlowSelection({ nodes, edges, setNodes, setEdges }) {
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
 
-  const selectedNode = selectedIds.length === 1 ? nodes.find((node) => node.id === selectedIds[0]) : null;
+  const selectedNode =
+    selectedIds.length === 1 ? nodes.find((node) => node.id === selectedIds[0]) : null;
   const selectedEdge = edges.find((edge) => edge.id === selectedEdgeId);
   const selectedCount = selectedIds.length;
   const hasSelection = selectedCount > 0 || Boolean(selectedEdge);
 
-  function deleteSelectedNodes() {
+  const deleteSelectedNodes = useCallback(() => {
     if (selectedIds.length === 0) return;
     setNodes((current) => current.filter((node) => !selectedIds.includes(node.id)));
     setEdges((current) =>
-      current.filter((edge) => !selectedIds.includes(edge.source) && !selectedIds.includes(edge.target)),
+      current.filter(
+        (edge) => !selectedIds.includes(edge.source) && !selectedIds.includes(edge.target),
+      ),
     );
     setSelectedIds([]);
     setSelectedEdgeId(null);
     setRightPanelOpen(false);
-  }
+  }, [selectedIds, setEdges, setNodes]);
 
-  function removeEdge(edgeId) {
-    setEdges((current) => current.filter((edge) => edge.id !== edgeId));
-    if (selectedEdgeId === edgeId) {
-      setSelectedEdgeId(null);
-      setRightPanelOpen(false);
-    }
-  }
+  const removeEdge = useCallback(
+    (edgeId) => {
+      setEdges((current) => current.filter((edge) => edge.id !== edgeId));
+      if (selectedEdgeId === edgeId) {
+        setSelectedEdgeId(null);
+        setRightPanelOpen(false);
+      }
+    },
+    [selectedEdgeId, setEdges],
+  );
 
   function selectEdge(edgeId) {
     setSelectedIds([]);
@@ -46,7 +52,11 @@ export function useFlowSelection({ nodes, edges, setNodes, setEdges }) {
 
       if (isTyping) return;
 
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a' && canvasActiveRef.current) {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 'a' &&
+        canvasActiveRef.current
+      ) {
         event.preventDefault();
         setSelectedIds(nodes.map((node) => node.id));
         setSelectedEdgeId(null);
@@ -65,7 +75,7 @@ export function useFlowSelection({ nodes, edges, setNodes, setEdges }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nodes, selectedIds, selectedEdgeId]);
+  }, [deleteSelectedNodes, nodes, removeEdge, selectedEdgeId, selectedIds]);
 
   return {
     canvasActiveRef,

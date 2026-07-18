@@ -1,4 +1,5 @@
 import {
+  CANVAS_EXPANSION_PADDING,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   FLOW_STORAGE_KEY,
@@ -26,8 +27,23 @@ export function createNode(type, x, y) {
 
 export function clampNodePosition(position) {
   return {
-    x: clamp(position.x, 0, CANVAS_WIDTH - NODE_WIDTH),
-    y: clamp(position.y, 0, CANVAS_HEIGHT - NODE_HEIGHT),
+    x: Math.max(0, position.x),
+    y: Math.max(0, position.y),
+  };
+}
+
+export function getCanvasSize(nodes) {
+  const nodeBounds = nodes.reduce(
+    (bounds, node) => ({
+      width: Math.max(bounds.width, node.position.x + NODE_WIDTH + CANVAS_EXPANSION_PADDING),
+      height: Math.max(bounds.height, node.position.y + NODE_HEIGHT + CANVAS_EXPANSION_PADDING),
+    }),
+    { width: CANVAS_WIDTH, height: CANVAS_HEIGHT },
+  );
+
+  return {
+    width: nodeBounds.width,
+    height: nodeBounds.height,
   };
 }
 

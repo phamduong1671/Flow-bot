@@ -1,5 +1,3 @@
-import React from 'react';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, NODE_WIDTH } from '../constants';
 import { FlowNode } from './FlowNode';
 
 export function FlowCanvas({
@@ -21,26 +19,48 @@ export function FlowCanvas({
       ref={canvas.canvasRef}
       onDrop={canvas.handleDrop}
       {...canvas.canvasHandlers}
-      className={`canvas-grid relative min-h-0 flex-1 overflow-auto bg-[#f8fafc] ${canvas.isPanning || canvas.isNodeDragging ? 'cursor-grabbing' : 'cursor-default'}`}
+      className={`relative min-h-0 flex-1 overflow-auto bg-[#f8fafc] ${canvas.isPanning || canvas.isNodeDragging ? 'cursor-grabbing' : 'cursor-default'}`}
     >
-      <div className="relative" style={{ height: CANVAS_HEIGHT * canvas.zoom, width: CANVAS_WIDTH * canvas.zoom }}>
+      <div
+        className="relative"
+        style={{
+          height: canvas.canvasSize.height * canvas.zoom,
+          width: canvas.canvasSize.width * canvas.zoom,
+        }}
+      >
         <div
-          className="absolute left-0 top-0"
+          className="canvas-grid absolute left-0 top-0"
           style={{
-            height: CANVAS_HEIGHT,
-            width: CANVAS_WIDTH,
+            height: canvas.canvasSize.height,
+            width: canvas.canvasSize.width,
             transform: `scale(${canvas.zoom})`,
             transformOrigin: '0 0',
           }}
         >
-          <svg className="absolute inset-0" style={{ height: CANVAS_HEIGHT, width: CANVAS_WIDTH }}>
+          <svg
+            className="absolute inset-0"
+            style={{ height: canvas.canvasSize.height, width: canvas.canvasSize.width }}
+          >
             <defs>
-              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
               </marker>
             </defs>
             {edgeLines.map((edge) => (
-              <EdgePath key={edge.id} edge={edge} selected={selectedEdgeId === edge.id} onSelectEdge={onSelectEdge} />
+              <EdgePath
+                key={edge.id}
+                edge={edge}
+                selected={selectedEdgeId === edge.id}
+                onSelectEdge={onSelectEdge}
+              />
             ))}
           </svg>
 

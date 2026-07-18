@@ -1,4 +1,3 @@
-import React from 'react';
 import { NODE_TYPES } from '../constants';
 
 export function FlowNode({
@@ -53,17 +52,19 @@ export function FlowNode({
           <Icon size={17} />
         </span>
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold">{node.label}</div>
-          <div className="truncate text-xs opacity-70">{spec.title}</div>
+          <div className="truncate text-sm font-bold">{node.label}</div>
+          <div className="truncate text-xs font-medium text-current">{spec.title}</div>
         </div>
       </div>
-      <div className="space-y-2 p-3 text-xs text-slate-600">
-        {Object.entries(node.data).slice(0, 2).map(([key, value]) => (
-          <div key={key} className="rounded-md bg-slate-50 px-2 py-1.5">
-            <span className="font-semibold text-slate-500">{key}: </span>
-            <span>{String(value)}</span>
-          </div>
-        ))}
+      <div className="space-y-2 p-3 text-xs text-slate-800">
+        {Object.entries(node.data)
+          .slice(0, 2)
+          .map(([key, value]) => (
+            <div key={key} className="rounded-md bg-slate-100 px-2 py-1.5">
+              <span className="font-bold text-slate-700">{key}: </span>
+              <span className="font-medium text-slate-900">{String(value)}</span>
+            </div>
+          ))}
       </div>
     </div>
   );

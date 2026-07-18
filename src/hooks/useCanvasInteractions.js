@@ -1,21 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  NODE_HEIGHT,
-  NODE_TYPES,
-  NODE_WIDTH,
-} from '../constants';
-import {
-  centerCanvas,
-  createCanvasHandlers,
-  zoomCanvasFromWheel,
-} from './canvasEventHandlers';
-import {
-  clamp,
-  clampNodePosition,
-  createNode,
-} from '../utils/flow';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { NODE_TYPES, NODE_WIDTH } from '../constants';
+import { centerCanvas, createCanvasHandlers, zoomCanvasFromWheel } from './canvasEventHandlers';
+import { clampNodePosition, createNode, getCanvasSize } from '../utils/flow';
 
 export function useCanvasInteractions({ nodes, setNodes, selectedIds, setSelectedIds, selection }) {
   const canvasRef = useRef(null);
@@ -29,6 +15,7 @@ export function useCanvasInteractions({ nodes, setNodes, selectedIds, setSelecte
   const [isNodeDragging, setIsNodeDragging] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [selectionBox, setSelectionBox] = useState(null);
+  const canvasSize = useMemo(() => getCanvasSize(nodes), [nodes]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,7 +59,9 @@ export function useCanvasInteractions({ nodes, setNodes, selectedIds, setSelecte
   function moveNode(nodeId, pointerEvent) {
     if (pointerEvent.button !== 0) return;
     const draggingIds = selectedIds.includes(nodeId) ? selectedIds : [nodeId];
-    const startNodes = nodes.filter((node) => draggingIds.includes(node.id)).map((node) => ({ id: node.id, position: node.position }));
+    const startNodes = nodes
+      .filter((node) => draggingIds.includes(node.id))
+      .map((node) => ({ id: node.id, position: node.position }));
     if (startNodes.length === 0) return;
 
     pointerEvent.preventDefault();
@@ -90,10 +79,8 @@ export function useCanvasInteractions({ nodes, setNodes, selectedIds, setSelecte
       const requestedDeltaY = nextPoint.y - startPoint.y;
       const minX = Math.min(...startNodes.map((node) => node.position.x));
       const minY = Math.min(...startNodes.map((node) => node.position.y));
-      const maxX = Math.max(...startNodes.map((node) => node.position.x + NODE_WIDTH));
-      const maxY = Math.max(...startNodes.map((node) => node.position.y + NODE_HEIGHT));
-      const deltaX = clamp(requestedDeltaX, -minX, CANVAS_WIDTH - maxX);
-      const deltaY = clamp(requestedDeltaY, -minY, CANVAS_HEIGHT - maxY);
+      const deltaX = Math.max(requestedDeltaX, -minX);
+      const deltaY = Math.max(requestedDeltaY, -minY);
 
       if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) suppressNodeClickRef.current = true;
       nodeDragPositionRef.current = startNodes.map((node) => ({
@@ -136,6 +123,7 @@ export function useCanvasInteractions({ nodes, setNodes, selectedIds, setSelecte
 
   return {
     canvasRef,
+    canvasSize,
     zoom,
     selectionBox,
     isPanning,

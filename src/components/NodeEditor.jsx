@@ -1,12 +1,12 @@
-import React from 'react';
-
 export function NodeEditor({ node, onChange }) {
   const fields = Object.keys(node.data);
 
   return (
     <div className="mt-4 space-y-3">
       <label className="block">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Label</span>
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Label
+        </span>
         <input
           value={node.label}
           onChange={(event) => onChange('label', event.target.value)}
@@ -20,7 +20,9 @@ export function NodeEditor({ node, onChange }) {
 
         return (
           <label key={field} className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{field}</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {field}
+            </span>
             {multiline ? (
               <textarea
                 value={value}

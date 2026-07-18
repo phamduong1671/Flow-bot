@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronLeft, ChevronRight, Hand, Plus } from 'lucide-react';
 import { HEADER_HEIGHT, NODE_TYPES } from '../constants';
 
@@ -32,7 +31,9 @@ export function NodePalette({ open, onToggle, onDragStart }) {
                 onDragStart={(event) => onDragStart(event, type)}
                 className={`flex w-full cursor-grab items-start gap-3 rounded-lg border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${spec.color}`}
               >
-                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-md text-white ${spec.accent}`}>
+                <span
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-md text-white ${spec.accent}`}
+                >
                   <Icon size={18} />
                 </span>
                 <span>
@@ -48,7 +49,8 @@ export function NodePalette({ open, onToggle, onDragStart }) {
             <Hand size={16} />
             Controls
           </div>
-          Drag nodes in. Ctrl + wheel zooms. Right mouse drag pans. Left drag empty space selects nodes.
+          Drag nodes in. Ctrl + wheel zooms. Right mouse drag pans. Left drag empty space selects
+          nodes.
         </div>
       </div>
     </aside>

@@ -32,13 +32,20 @@ export function pickConditionEdge(edges, result) {
 }
 
 export function evaluateCondition(data, variables) {
-  const variableValue = String(variables[data.variable] ?? '').trim().toLowerCase();
-  const condition = String(data.condition || '').trim().toLowerCase();
+  const variableValue = String(variables[data.variable] ?? '')
+    .trim()
+    .toLowerCase();
+  const condition = String(data.condition || '')
+    .trim()
+    .toLowerCase();
 
   if (!condition) return Boolean(variableValue);
-  if (condition.startsWith('equals ')) return variableValue === condition.replace('equals ', '').trim();
-  if (condition.startsWith('not equals ')) return variableValue !== condition.replace('not equals ', '').trim();
-  if (condition.startsWith('contains ')) return variableValue.includes(condition.replace('contains ', '').trim());
+  if (condition.startsWith('equals '))
+    return variableValue === condition.replace('equals ', '').trim();
+  if (condition.startsWith('not equals '))
+    return variableValue !== condition.replace('not equals ', '').trim();
+  if (condition.startsWith('contains '))
+    return variableValue.includes(condition.replace('contains ', '').trim());
   return variableValue === condition;
 }
 
@@ -54,31 +61,63 @@ export function executeFlowUntilPause({ startNodeId, nodes, edges, context }) {
   let currentNodeId = startNodeId;
 
   for (let step = 0; step < MAX_RUN_STEPS; step += 1) {
-    if (!currentNodeId) return { status: 'ended', context: nextContext, messages, text: 'Flow finished.' };
+    if (!currentNodeId)
+      return { status: 'ended', context: nextContext, messages, text: 'Flow finished.' };
 
     const node = nodeMap.get(currentNodeId);
-    if (!node) return { status: 'error', context: nextContext, messages, text: `Node not found: ${currentNodeId}` };
+    if (!node)
+      return {
+        status: 'error',
+        context: nextContext,
+        messages,
+        text: `Node not found: ${currentNodeId}`,
+      };
 
     const nodeEdges = outgoing[node.id] || [];
     if (node.type === 'start' || node.type === 'message') {
-      if (node.data.message) messages.push(createRunnerMessage('bot', resolveTemplate(node.data.message, nextContext.variables)));
+      if (node.data.message)
+        messages.push(
+          createRunnerMessage('bot', resolveTemplate(node.data.message, nextContext.variables)),
+        );
       currentNodeId = pickNextEdge(nodeEdges)?.target;
     } else if (node.type === 'question') {
-      messages.push(createRunnerMessage('bot', resolveTemplate(node.data.message || 'Please enter a value.', nextContext.variables)));
+      messages.push(
+        createRunnerMessage(
+          'bot',
+          resolveTemplate(node.data.message || 'Please enter a value.', nextContext.variables),
+        ),
+      );
       return { status: 'waiting', context: nextContext, messages, waitingNodeId: node.id };
     } else if (node.type === 'condition') {
       const result = evaluateCondition(node.data, nextContext.variables);
-      messages.push(createRunnerMessage('system', `Condition ${node.data.variable || 'value'} ${node.data.condition || ''}: ${result ? 'true' : 'false'}`));
+      messages.push(
+        createRunnerMessage(
+          'system',
+          `Condition ${node.data.variable || 'value'} ${node.data.condition || ''}: ${result ? 'true' : 'false'}`,
+        ),
+      );
       currentNodeId = pickConditionEdge(nodeEdges, result)?.target;
     } else if (node.type === 'action') {
       const payload = resolveTemplate(node.data.payload || '{}', nextContext.variables);
       nextContext.actions.push({ action: node.data.action, payload });
-      messages.push(createRunnerMessage('system', `Action: ${node.data.action || 'unnamed'} ${payload}`));
+      messages.push(
+        createRunnerMessage('system', `Action: ${node.data.action || 'unnamed'} ${payload}`),
+      );
       currentNodeId = pickNextEdge(nodeEdges)?.target;
     } else {
-      return { status: 'error', context: nextContext, messages, text: `Unsupported node type: ${node.type}` };
+      return {
+        status: 'error',
+        context: nextContext,
+        messages,
+        text: `Unsupported node type: ${node.type}`,
+      };
     }
   }
 
-  return { status: 'error', context: nextContext, messages, text: 'Flow stopped because it exceeded the maximum run steps.' };
+  return {
+    status: 'error',
+    context: nextContext,
+    messages,
+    text: 'Flow stopped because it exceeded the maximum run steps.',
+  };
 }

@@ -1,13 +1,8 @@
-import {
-  Bot,
-  GitBranch,
-  MessageSquareText,
-  Play,
-  WandSparkles,
-} from 'lucide-react';
+import { Bot, GitBranch, MessageSquareText, Play, WandSparkles } from 'lucide-react';
 
 export const CANVAS_WIDTH = 4200;
 export const CANVAS_HEIGHT = 2800;
+export const CANVAS_EXPANSION_PADDING = 900;
 export const NODE_WIDTH = 224;
 export const NODE_HEIGHT = 112;
 export const HEADER_HEIGHT = 76;

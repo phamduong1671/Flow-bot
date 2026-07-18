@@ -1,9 +1,4 @@
-import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  MAX_ZOOM,
-  MIN_ZOOM,
-} from '../constants';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_ZOOM, MIN_ZOOM } from '../constants';
 import { clamp, getNodesInBox, normalizeBox } from '../utils/flow';
 
 export function centerCanvas(canvas) {
@@ -87,10 +82,17 @@ function startPan(event, { canvasRef, panFrameRef, panPositionRef, setIsPanning 
 }
 
 function startSelection(event, args) {
-  const { nodes, selection, screenToCanvas, setSelectedIds, setSelectionBox, selectionMovedRef } = args;
+  const { nodes, selection, screenToCanvas, setSelectedIds, setSelectionBox, selectionMovedRef } =
+    args;
   if (event.target.closest('[data-flow-node]') || event.target.closest('[data-port]')) return;
 
   event.preventDefault();
+  const selectionTarget = event.currentTarget;
+  const pointerId = event.pointerId;
+  if (selectionTarget.setPointerCapture) {
+    selectionTarget.setPointerCapture(pointerId);
+  }
+
   const startPoint = screenToCanvas(event.clientX, event.clientY);
   selectionMovedRef.current = false;
   setSelectionBox({ x: startPoint.x, y: startPoint.y, width: 0, height: 0 });
@@ -103,18 +105,39 @@ function startSelection(event, args) {
     setSelectedIds(getNodesInBox(nodes, nextBox));
   }
 
+  function releasePointer() {
+    if (selectionTarget.hasPointerCapture?.(pointerId)) {
+      selectionTarget.releasePointerCapture(pointerId);
+    }
+  }
+
+  function cleanupSelection() {
+    setSelectionBox(null);
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('pointercancel', onPointerCancel);
+    window.removeEventListener('blur', onPointerCancel);
+  }
+
   function onPointerUp(upEvent) {
+    releasePointer();
+
     const endPoint = screenToCanvas(upEvent.clientX, upEvent.clientY);
     const finalBox = normalizeBox(startPoint, endPoint);
     const nextSelectedIds = selectionMovedRef.current ? getNodesInBox(nodes, finalBox) : [];
     setSelectedIds(nextSelectedIds);
     selection.setSelectedEdgeId(null);
     selection.setRightPanelOpen(nextSelectedIds.length > 0);
-    setSelectionBox(null);
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerup', onPointerUp);
+    cleanupSelection();
   }
 
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
+  function onPointerCancel() {
+    releasePointer();
+    cleanupSelection();
+  }
+
+  document.addEventListener('pointermove', onPointerMove);
+  document.addEventListener('pointerup', onPointerUp);
+  document.addEventListener('pointercancel', onPointerCancel);
+  window.addEventListener('blur', onPointerCancel);
 }

@@ -1,9 +1,5 @@
 import { useState } from 'react';
-import {
-  createRunnerMessage,
-  executeFlowUntilPause,
-  pickNextEdge,
-} from '../utils/runner';
+import { createRunnerMessage, executeFlowUntilPause, pickNextEdge } from '../utils/runner';
 
 const emptyContext = { variables: {}, actions: [] };
 
@@ -37,7 +33,10 @@ export function useRunner(nodes, edges) {
 
   function runFromNode(startNodeId, nextContext, leadingMessages = []) {
     setStatus('running');
-    applyResult(executeFlowUntilPause({ startNodeId, nodes, edges, context: nextContext }), leadingMessages);
+    applyResult(
+      executeFlowUntilPause({ startNodeId, nodes, edges, context: nextContext }),
+      leadingMessages,
+    );
   }
 
   function start() {
@@ -75,7 +74,10 @@ export function useRunner(nodes, edges) {
 
     const questionNode = nodes.find((node) => node.id === waitingNodeId);
     if (!questionNode) {
-      setMessages((current) => [...current, createRunnerMessage('error', 'Waiting question node was removed.')]);
+      setMessages((current) => [
+        ...current,
+        createRunnerMessage('error', 'Waiting question node was removed.'),
+      ]);
       setStatus('error');
       return;
     }

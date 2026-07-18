@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { NODE_WIDTH } from './constants';
 import { AppHeader } from './components/AppHeader';
 import { FlowCanvas } from './components/FlowCanvas';
@@ -73,7 +73,9 @@ function App() {
 
   function handleInputClick(targetId) {
     if (!connectingFrom || connectingFrom === targetId) return;
-    const edgeExists = edges.some((edge) => edge.source === connectingFrom && edge.target === targetId);
+    const edgeExists = edges.some(
+      (edge) => edge.source === connectingFrom && edge.target === targetId,
+    );
 
     if (!edgeExists) {
       setEdges((current) => [
