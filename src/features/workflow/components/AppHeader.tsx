@@ -1,4 +1,5 @@
 import { Braces, Play, Route } from 'lucide-react';
+import { BaseButton } from '../../../components/base/BaseButton';
 
 export function AppHeader({ onRun, onBuildJson }) {
   return (
@@ -13,22 +14,14 @@ export function AppHeader({ onRun, onBuildJson }) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onRun}
-          className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-        >
+        <BaseButton onClick={onRun} variant="secondary">
           <Play size={18} />
           Run
-        </button>
-        <button
-          type="button"
-          onClick={onBuildJson}
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-        >
+        </BaseButton>
+        <BaseButton onClick={onBuildJson} variant="primary">
           <Braces size={18} />
           Build JSON
-        </button>
+        </BaseButton>
       </div>
     </header>
   );

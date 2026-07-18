@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FLOW_STORAGE_KEY } from '../constants';
+import { FLOW_STORAGE_KEY } from '../../../constants';
 import { buildScenario, loadSavedFlow } from '../utils/flow';
 
 export function usePersistentFlow() {

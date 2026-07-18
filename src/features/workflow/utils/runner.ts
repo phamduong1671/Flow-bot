@@ -1,4 +1,4 @@
-import { MAX_RUN_STEPS } from '../constants';
+import { MAX_RUN_STEPS } from '../../../constants';
 
 type FlowNode = {
   id: string;

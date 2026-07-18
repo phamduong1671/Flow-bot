@@ -7,8 +7,10 @@ import {
   MousePointer2,
   Trash2,
 } from 'lucide-react';
-import { HEADER_HEIGHT } from '../constants';
-import { NodeEditor } from './NodeEditor';
+import { BaseButton } from '../../../components/base/BaseButton';
+import { BaseInput } from '../../../components/base/BaseInput';
+import { NodeConfigForm } from '../node-config/NodeConfigForm';
+import { HEADER_HEIGHT } from '../../../constants';
 
 export function SidePanel({
   open,
@@ -35,14 +37,15 @@ export function SidePanel({
       className={`absolute right-0 z-20 flex w-[340px] min-h-0 flex-col overflow-visible border-l border-slate-200 bg-white shadow-panel transition-transform ${open ? 'translate-x-0' : 'translate-x-full'}`}
       style={{ top: HEADER_HEIGHT, height: `calc(100% - ${HEADER_HEIGHT}px)` }}
     >
-      <button
-        type="button"
+      <BaseButton
         onClick={onToggle}
-        className={`absolute -left-5 top-3 z-20 grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md hover:bg-slate-50 ${open ? '' : 'justify-items-start pl-1.5'}`}
+        variant="secondary"
+        size="icon-md"
+        className={`absolute -left-5 top-3 z-20 rounded-full text-slate-700 shadow-md ${open ? '' : 'justify-items-start pl-1.5'}`}
         title={open ? 'Collapse panel' : 'Open JSON output'}
       >
         {open ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-      </button>
+      </BaseButton>
 
       <div className="min-h-0 flex-1 overflow-auto">
         {selectedCount > 0 && (
@@ -52,18 +55,18 @@ export function SidePanel({
                 <MousePointer2 size={18} />
                 Inspector
               </div>
-              <button
-                type="button"
+              <BaseButton
                 onClick={onDeleteNodes}
-                className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                variant="danger"
+                size="icon-md"
                 title="Delete selected nodes"
               >
                 <Trash2 size={17} />
-              </button>
+              </BaseButton>
             </div>
 
             {selectedNode ? (
-              <NodeEditor node={selectedNode} onChange={onUpdateNode} />
+              <NodeConfigForm node={selectedNode} onChange={onUpdateNode} />
             ) : (
               <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                 {selectedCount} nodes selected
@@ -88,22 +91,24 @@ export function SidePanel({
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="text-sm font-semibold text-slate-700">JSON output</div>
             <div className="flex gap-2">
-              <button
-                type="button"
+              <BaseButton
                 onClick={onCopyJson}
-                className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                variant="secondary"
+                size="icon-sm"
+                className="text-slate-600"
                 title="Copy JSON"
               >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
-              </button>
-              <button
-                type="button"
+              </BaseButton>
+              <BaseButton
                 onClick={onDownloadJson}
-                className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                variant="secondary"
+                size="icon-sm"
+                className="text-slate-600"
                 title="Download JSON"
               >
                 <Download size={16} />
-              </button>
+              </BaseButton>
             </div>
           </div>
           <pre className="min-h-0 flex-1 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-emerald-100">
@@ -129,10 +134,10 @@ function ConnectionList(props) {
             <span className="mb-1 block text-[11px] font-semibold uppercase text-indigo-700">
               Label
             </span>
-            <input
+            <BaseInput
               value={selectedEdge.label}
-              onChange={(event) => onUpdateEdge('label', event.target.value)}
-              className="h-9 w-full rounded-md border border-indigo-200 bg-white px-2 text-xs text-slate-900 outline-none focus:border-indigo-500"
+              onChange={(value) => onUpdateEdge('label', value)}
+              className="h-9 border-indigo-200 px-2 text-xs text-slate-900 focus:border-indigo-500"
               placeholder="next, true, false"
             />
           </label>
@@ -177,17 +182,18 @@ function ConnectionItem({ edge, nodes, selected, onSelectEdge, onRemoveEdge }) {
         {source?.label || 'Missing'} <ChevronRight className="inline" size={13} />{' '}
         {target?.label || 'Missing'}
       </span>
-      <button
-        type="button"
+      <BaseButton
         onClick={(event) => {
           event.stopPropagation();
           onRemoveEdge(edge.id);
         }}
-        className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+        variant="ghost"
+        size="icon-sm"
+        className="h-7 w-7 shrink-0"
         title="Delete connection"
       >
         <Trash2 size={14} />
-      </button>
+      </BaseButton>
     </div>
   );
 }

@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { NODE_WIDTH } from './constants';
-import { AppHeader } from './components/AppHeader';
-import { FlowCanvas } from './components/FlowCanvas';
-import { NodePalette } from './components/NodePalette';
-import { RunnerPanel } from './components/RunnerPanel';
-import { SidePanel } from './components/SidePanel';
-import { useCanvasInteractions } from './hooks/useCanvasInteractions';
-import { useFlowSelection } from './hooks/useFlowSelection';
-import { usePersistentFlow } from './hooks/usePersistentFlow';
-import { useRunner } from './hooks/useRunner';
+import { AppHeader } from './features/workflow/components/AppHeader';
+import { FlowCanvas } from './features/workflow/components/FlowCanvas';
+import { NodePalette } from './features/workflow/components/NodePalette';
+import { RunnerPanel } from './features/workflow/components/RunnerPanel';
+import { SidePanel } from './features/workflow/components/SidePanel';
+import { useCanvasInteractions } from './features/workflow/hooks/useCanvasInteractions';
+import { useFlowSelection } from './features/workflow/hooks/useFlowSelection';
+import { usePersistentFlow } from './features/workflow/hooks/usePersistentFlow';
+import { useRunner } from './features/workflow/hooks/useRunner';
 
 function App() {
   const { nodes, setNodes, edges, setEdges, botJson } = usePersistentFlow();

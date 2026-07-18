@@ -1,4 +1,6 @@
-import { NODE_TYPES } from '../constants';
+import { BaseCard } from '../../../components/base/BaseCard';
+import { BaseButton } from '../../../components/base/BaseButton';
+import { NODE_TYPES } from '../../../constants';
 
 export function FlowNode({
   node,
@@ -14,8 +16,9 @@ export function FlowNode({
   const Icon = spec.icon;
 
   return (
-    <div
+    <BaseCard
       data-flow-node
+      selected={selected}
       onClick={(event) => {
         event.stopPropagation();
         onSelect(node.id);
@@ -24,26 +27,28 @@ export function FlowNode({
         if ((event.target as Element).closest('[data-port]')) return;
         onPointerDown(node.id, event);
       }}
-      className={`absolute w-56 select-none rounded-lg border-2 bg-white shadow-panel will-change-transform transition-[border-color,box-shadow] ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${selected ? 'border-slate-950 ring-2 ring-slate-300' : 'border-slate-200'} ${connecting ? 'ring-4 ring-indigo-200' : ''}`}
+      className={`absolute w-56 select-none will-change-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${connecting ? 'ring-4 ring-indigo-200' : ''}`}
       style={{ transform: `translate(${node.position.x}px, ${node.position.y}px)` }}
     >
-      <button
-        type="button"
+      <BaseButton
         data-port="input"
         onClick={(event) => {
           event.stopPropagation();
           onInputClick(node.id);
         }}
+        variant="ghost"
+        size="auto"
         className="absolute -left-3 top-10 h-6 w-6 rounded-full border-2 border-white bg-slate-500 shadow hover:bg-slate-700"
         title="Input port"
       />
-      <button
-        type="button"
+      <BaseButton
         data-port="output"
         onClick={(event) => {
           event.stopPropagation();
           onOutputClick(node.id);
         }}
+        variant="ghost"
+        size="auto"
         className={`absolute -right-3 top-10 h-6 w-6 rounded-full border-2 border-white shadow ${connecting ? 'bg-indigo-600' : 'bg-slate-500 hover:bg-slate-700'}`}
         title="Output port"
       />
@@ -66,6 +71,6 @@ export function FlowNode({
             </div>
           ))}
       </div>
-    </div>
+    </BaseCard>
   );
 }

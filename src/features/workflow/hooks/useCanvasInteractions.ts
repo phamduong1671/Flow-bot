@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NODE_TYPES, NODE_WIDTH } from '../constants';
+import { NODE_TYPES, NODE_WIDTH } from '../../../constants';
 import { centerCanvas, createCanvasHandlers, zoomCanvasFromWheel } from './canvasEventHandlers';
 import { clampNodePosition, createNode, getCanvasSize } from '../utils/flow';
 

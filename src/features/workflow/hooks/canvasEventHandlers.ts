@@ -1,4 +1,4 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_ZOOM, MIN_ZOOM } from '../constants';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_ZOOM, MIN_ZOOM } from '../../../constants';
 import { clamp, getNodesInBox, normalizeBox } from '../utils/flow';
 
 export function centerCanvas(canvas) {

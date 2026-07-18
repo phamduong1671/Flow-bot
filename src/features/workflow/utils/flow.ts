@@ -6,7 +6,7 @@ import {
   NODE_HEIGHT,
   NODE_TYPES,
   NODE_WIDTH,
-} from '../constants';
+} from '../../../constants';
 
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
