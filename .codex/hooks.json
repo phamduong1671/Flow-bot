@@ -1,0 +1,18 @@
+{
+  "description": "Project hooks for Flow-bot.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/log-prompt.ps1",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/log-prompt.ps1",
+            "timeout": 10,
+            "statusMessage": "Logging user prompt"
+          }
+        ]
+      }
+    ]
+  }
+}
