@@ -2,6 +2,10 @@ param(
   [string]$Prompt = $env:CODEX_USER_PROMPT
 )
 
+# Codex sends hook JSON through stdin as UTF-8. Windows PowerShell otherwise
+# decodes redirected stdin with the active OEM code page, which corrupts
+# Vietnamese text before it reaches Add-Content.
+[Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
 $stdinPayload = [Console]::In.ReadToEnd()
 if ([string]::IsNullOrWhiteSpace($Prompt) -and -not [string]::IsNullOrWhiteSpace($stdinPayload)) {
   try {
