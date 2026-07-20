@@ -7,6 +7,8 @@ import {
   NODE_TYPES,
   NODE_WIDTH,
 } from '../../../constants';
+import sampleFlowDefinition from '../../../../examples/sample-flow.json';
+import type { WorkflowEdge, WorkflowNode } from '../types';
 
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -47,11 +49,14 @@ export function getCanvasSize(nodes) {
   };
 }
 
-export const initialNodes = [
-  createNode('start', CANVAS_WIDTH / 2 - NODE_WIDTH / 2, CANVAS_HEIGHT / 2 - NODE_HEIGHT / 2),
-];
+export const sampleFlow = sampleFlowDefinition as { nodes: WorkflowNode[]; edges: WorkflowEdge[] };
 
-export const initialEdges = [];
+export const initialNodes = sampleFlow.nodes;
+export const initialEdges = sampleFlow.edges;
+
+export function cloneSampleFlow() {
+  return structuredClone(sampleFlow);
+}
 
 export function loadSavedFlow() {
   try {

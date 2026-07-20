@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { NODE_WIDTH } from './constants';
+import { AuthModal } from './features/auth/AuthModal';
 import { AppHeader } from './features/workflow/components/AppHeader';
 import { FlowCanvas } from './features/workflow/components/FlowCanvas';
 import { NodePalette } from './features/workflow/components/NodePalette';
 import { RunnerPanel } from './features/workflow/components/RunnerPanel';
+import { LlmMonitoring } from './features/workflow/components/LlmMonitoring';
 import { SidePanel } from './features/workflow/components/SidePanel';
 import { useCanvasInteractions } from './features/workflow/hooks/useCanvasInteractions';
 import { useFlowSelection } from './features/workflow/hooks/useFlowSelection';
@@ -11,14 +13,30 @@ import { usePersistentFlow } from './features/workflow/hooks/usePersistentFlow';
 import { useRunner } from './features/workflow/hooks/useRunner';
 
 function App() {
-  const { nodes, setNodes, edges, setEdges, botJson } = usePersistentFlow();
+  const {
+    nodes,
+    setNodes,
+    edges,
+    setEdges,
+    botJson,
+    saveStatus,
+    saveNow,
+    flows,
+    activeFlowId,
+    flowName,
+    setFlowName,
+    selectFlow,
+    createNewFlow,
+    deleteActiveFlow,
+  } = usePersistentFlow();
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [jsonOutput, setJsonOutput] = useState('');
   const [copied, setCopied] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const selection = useFlowSelection({ nodes, edges, setNodes, setEdges });
-  const runner = useRunner(nodes, edges);
+  const runner = useRunner(nodes, edges, { flowId: activeFlowId, beforeRemoteRun: saveNow });
   const canvas = useCanvasInteractions({
     nodes,
     setNodes,
@@ -118,7 +136,19 @@ function App() {
         />
 
         <div className="flex h-full min-h-0 flex-col">
-          <AppHeader onRun={runner.start} onBuildJson={buildJson} />
+          <AppHeader
+            onRun={runner.start}
+            onBuildJson={buildJson}
+            onOpenAuth={() => setAuthOpen(true)}
+            saveStatus={saveStatus}
+            flows={flows}
+            activeFlowId={activeFlowId}
+            flowName={flowName}
+            onFlowNameChange={setFlowName}
+            onSelectFlow={selectFlow}
+            onCreateFlow={createNewFlow}
+            onDeleteFlow={deleteActiveFlow}
+          />
           <FlowCanvas
             canvas={canvas}
             nodes={nodes}
@@ -140,6 +170,8 @@ function App() {
                 runner={runner.runner}
                 onRestart={runner.start}
                 onClose={runner.close}
+                onOpenMonitoring={runner.openMonitoring}
+                rightPanelOpen={selection.rightPanelOpen}
                 input={runner.runner.input}
                 onInputChange={runner.setInput}
                 onSubmit={runner.submit}
@@ -147,6 +179,12 @@ function App() {
             }
           />
         </div>
+
+        <LlmMonitoring
+          open={runner.runner.monitoringOpen}
+          trace={runner.runner.trace}
+          onClose={runner.closeMonitoring}
+        />
 
         <SidePanel
           open={selection.rightPanelOpen}
@@ -168,6 +206,7 @@ function App() {
           onDownloadJson={downloadJson}
           jsonText={jsonText}
         />
+        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       </section>
     </main>
   );

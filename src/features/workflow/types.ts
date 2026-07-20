@@ -1,4 +1,14 @@
-export type NodeType = 'start' | 'message' | 'question' | 'condition' | 'action';
+export type NodeType =
+  | 'start'
+  | 'input'
+  | 'message'
+  | 'question'
+  | 'condition'
+  | 'action'
+  | 'rag_search'
+  | 'web_search'
+  | 'llm'
+  | 'output';
 
 export type WorkflowNode = {
   id: string;
