@@ -76,7 +76,7 @@ export function FlowCanvas({
             />
           )}
 
-          <div className="relative h-full w-full">
+          <div className="pointer-events-none relative h-full w-full">
             {nodes.map((node) => (
               <FlowNode
                 key={node.id}

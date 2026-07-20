@@ -27,7 +27,7 @@ export function FlowNode({
         if ((event.target as Element).closest('[data-port]')) return;
         onPointerDown(node.id, event);
       }}
-      className={`absolute w-56 select-none will-change-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${connecting ? 'ring-4 ring-indigo-200' : ''}`}
+      className={`pointer-events-auto absolute w-56 select-none will-change-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${connecting ? 'ring-4 ring-indigo-200' : ''}`}
       style={{ transform: `translate(${node.position.x}px, ${node.position.y}px)` }}
     >
       <BaseButton
@@ -38,7 +38,7 @@ export function FlowNode({
         }}
         variant="ghost"
         size="auto"
-        className="absolute -left-3 top-10 h-6 w-6 rounded-full border-2 border-white bg-slate-500 shadow hover:bg-slate-700"
+        className="absolute -left-2.5 top-10 h-5 w-5 rounded-full border-2 border-white bg-slate-500 shadow hover:bg-slate-700"
         title="Input port"
       />
       <BaseButton
@@ -49,7 +49,7 @@ export function FlowNode({
         }}
         variant="ghost"
         size="auto"
-        className={`absolute -right-3 top-10 h-6 w-6 rounded-full border-2 border-white shadow ${connecting ? 'bg-indigo-600' : 'bg-slate-500 hover:bg-slate-700'}`}
+        className={`absolute -right-2.5 top-10 h-5 w-5 rounded-full border-2 border-white shadow ${connecting ? 'bg-indigo-600' : 'bg-slate-500 hover:bg-slate-700'}`}
         title="Output port"
       />
       <div className={`flex items-center gap-2 rounded-t-md border-b px-3 py-2 ${spec.color}`}>
