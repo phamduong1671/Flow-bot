@@ -45,7 +45,10 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
   }
 
   function start() {
-    if (nodes.length > 0) {
+    const needsBackend = nodes.some((node) =>
+      ['input', 'rag_search', 'web_search', 'llm', 'output'].includes(node.type),
+    );
+    if (token && flowId) {
       setOpen(true);
       setMonitoringOpen(false);
       setTrace(null);
@@ -54,6 +57,17 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
       setWaitingNodeId('__remote_workflow__');
       setStatus('waiting');
       setMessages([createRunnerMessage('system', 'Enter the workflow input, then press Send.')]);
+      return;
+    }
+    if (needsBackend) {
+      setOpen(true);
+      setStatus('error');
+      setMessages([
+        createRunnerMessage(
+          'error',
+          'Sign in to run LLM and search nodes securely on the backend.',
+        ),
+      ]);
       return;
     }
     const startNode = nodes.find((node) => node.type === 'start');
@@ -89,7 +103,7 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
     const answer = input.trim();
     if (!answer) return;
 
-    if (waitingNodeId === '__remote_workflow__') {
+    if (waitingNodeId === '__remote_workflow__' && token && flowId) {
       const startedAt = new Date().toISOString();
       setInput('');
       setWaitingNodeId(null);
@@ -97,17 +111,14 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
       setMessages((current) => [...current, createRunnerMessage('user', answer)]);
       setTrace({ status: 'running', input: answer, startedAt, steps: [] });
       try {
-        const authenticatedRun = Boolean(token && flowId);
-        if (authenticatedRun) await beforeRemoteRun();
+        await beforeRemoteRun();
         const { run } = await apiRequest(
-          authenticatedRun ? `/api/flows/${flowId}/runs` : '/api/runs/anonymous',
+          `/api/flows/${flowId}/runs`,
           {
             method: 'POST',
-            body: JSON.stringify(
-              authenticatedRun ? { input: answer } : { input: answer, flow: { nodes, edges } },
-            ),
+            body: JSON.stringify({ input: answer }),
           },
-          authenticatedRun ? token : undefined,
+          token,
         );
         const nodeLabels = Object.fromEntries(nodes.map((node) => [node.id, node.label]));
         setTrace({

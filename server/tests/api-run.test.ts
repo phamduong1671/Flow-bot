@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { request as httpRequest } from 'node:http';
 import type { Server } from 'node:http';
+import path from 'node:path';
 import test from 'node:test';
 import sampleFlow from '../../examples/sample-flow.json';
 import type { WorkflowObserver, WorkflowProviders } from '../workflow/engine.js';
-import { createTestStore } from './test-store.js';
 
+const dataDirectory = await mkdtemp(path.join(process.cwd(), 'server', 'data-test-'));
+process.env.DATA_DIR = dataDirectory;
 process.env.JWT_SECRET = 'integration-test-secret';
-process.env.ANONYMOUS_ALLOWED_MODELS = 'gpt-4o-mini';
 const { createApp } = await import('../app.js');
 
 let traceCount = 0;
 let observationCount = 0;
-let tracedUserId = '';
 const observer: WorkflowObserver = {
-  observeRun: async (details, execute) => {
+  observeRun: async (_details, execute) => {
     traceCount += 1;
-    tracedUserId = details.userId;
     return execute();
   },
   observeNode: async (_details, execute) => {
@@ -54,14 +54,10 @@ const providers: WorkflowProviders = {
     }),
   },
 };
-const store = createTestStore();
 const server = await new Promise<Server>((resolve) => {
-  const instance = createApp({
-    providers,
-    observerFactory: () => observer,
-    store,
-    anonymousRateLimit: { limit: 3, windowMs: 60_000 },
-  }).listen(0, () => resolve(instance));
+  const instance = createApp({ providers, observerFactory: () => observer }).listen(0, () =>
+    resolve(instance),
+  );
 });
 server.unref();
 const address = server.address();
@@ -71,7 +67,7 @@ const baseUrl = `http://127.0.0.1:${address.port}`;
 test.after(async () => {
   server.closeAllConnections();
   server.close();
-  await store.close();
+  await rm(dataDirectory, { recursive: true, force: true });
 });
 
 function api(pathname: string, options: { method?: string; token?: string; body?: unknown } = {}) {
@@ -170,40 +166,4 @@ test('sample flow runs end-to-end through authenticated owner API', async () => 
   assert.equal(run.steps.find((step) => step.nodeId === 'sample-llm')?.telemetry?.totalTokens, 14);
   assert.equal(traceCount, 1);
   assert.equal(observationCount, 5);
-});
-
-test('anonymous API runs JSON without saving it and enforces safety limits', async () => {
-  const executed = await api('/api/runs/anonymous', {
-    method: 'POST',
-    body: { input: 'anonymous question', flow: sampleFlow },
-  });
-  assert.equal(executed.status, 200);
-  assert.match(tracedUserId, /^anonymous:[0-9a-f-]{36}$/);
-  assert.equal((await store.listFlows(tracedUserId)).length, 0);
-
-  const unsafeFlow = structuredClone(sampleFlow);
-  (unsafeFlow.nodes[0].data as Record<string, string>).apiKey = 'must-not-be-accepted';
-  const unsafe = await api('/api/runs/anonymous', {
-    method: 'POST',
-    body: { input: 'question', flow: unsafeFlow },
-  });
-  assert.equal(unsafe.status, 400);
-  assert.equal(unsafe.body.code, 'UNSAFE_ANONYMOUS_FLOW');
-
-  const oversized = await api('/api/runs/anonymous', {
-    method: 'POST',
-    body: {
-      input: 'question',
-      flow: { nodes: Array.from({ length: 51 }, () => sampleFlow.nodes[0]), edges: [] },
-    },
-  });
-  assert.equal(oversized.status, 400);
-  assert.equal(oversized.body.code, 'UNSAFE_ANONYMOUS_FLOW');
-
-  const rateLimited = await api('/api/runs/anonymous', {
-    method: 'POST',
-    body: { input: 'question', flow: sampleFlow },
-  });
-  assert.equal(rateLimited.status, 429);
-  assert.equal(rateLimited.body.code, 'ANONYMOUS_RATE_LIMITED');
 });

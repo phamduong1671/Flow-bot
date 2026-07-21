@@ -28,7 +28,6 @@ export function usePersistentFlow() {
     'local',
   );
   const editorRef = useRef({ nodes, edges });
-  const wasGuestRef = useRef(!user);
   editorRef.current = { nodes, edges };
 
   function loadFlow(flow: FlowRecord) {
@@ -45,7 +44,6 @@ export function usePersistentFlow() {
   useEffect(() => {
     let active = true;
     if (!token || !user) {
-      wasGuestRef.current = true;
       queueMicrotask(() => {
         if (active) {
           setFlows([]);
@@ -56,37 +54,22 @@ export function usePersistentFlow() {
       });
       return;
     }
-    const signedInFromGuest = wasGuestRef.current;
-    wasGuestRef.current = false;
     queueMicrotask(() => active && setSaveStatus('loading'));
     apiRequest('/api/flows', {}, token)
       .then(async ({ flows: remoteFlows }: { flows: FlowRecord[] }) => {
         if (!active) return;
         let nextFlows = remoteFlows;
-        const local = editorRef.current;
-        const hasLocalFlow = local.nodes.length > 0 || local.edges.length > 0;
-        const localMatchesRemote = remoteFlows.some(
-          (flow) =>
-            JSON.stringify(flow.nodes) === JSON.stringify(local.nodes) &&
-            JSON.stringify(flow.edges) === JSON.stringify(local.edges),
-        );
-        const saveGuestFlow =
-          signedInFromGuest &&
-          hasLocalFlow &&
-          !localMatchesRemote &&
-          window.confirm('Save the flow currently on this device to your account?');
-        if (saveGuestFlow || !nextFlows.length) {
-          const flowToCreate =
-            signedInFromGuest && hasLocalFlow && !saveGuestFlow ? { nodes: [], edges: [] } : local;
+        if (!nextFlows.length) {
+          const local = editorRef.current;
           const created = (await apiRequest(
             '/api/flows',
             {
               method: 'POST',
-              body: JSON.stringify({ name: 'My flow', ...flowToCreate }),
+              body: JSON.stringify({ name: 'My flow', nodes: local.nodes, edges: local.edges }),
             },
             token,
           )) as { flow: FlowRecord };
-          nextFlows = [created.flow, ...nextFlows];
+          nextFlows = [created.flow];
         }
         if (!active) return;
         setFlows(nextFlows);
