@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: flow-bot-api
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: npm ci --include=dev
+    startCommand: npm run start:api
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.6-terra
+      - key: OPENAI_VECTOR_STORE_ID
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: LLM_TIMEOUT_MS
+        value: 60000
+      - key: SEARCH_TIMEOUT_MS
+        value: 15000
+      - key: LANGFUSE_BASE_URL
+        value: https://cloud.langfuse.com
+      - key: LANGFUSE_TIMEOUT_MS
+        value: 2000
+    disk:
+      name: flow-bot-data
+      mountPath: /var/data
+      sizeGB: 1

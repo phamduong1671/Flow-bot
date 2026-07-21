@@ -32,4 +32,5 @@ $promptFile = Join-Path $repoRoot ".codex\log.md"
 $date = Get-Date -Format "yyyy-MM-dd"
 $singleLinePrompt = ($Prompt -replace "\r?\n", " ").Trim()
 
-Add-Content -LiteralPath $promptFile -Value "- ${date}: ${singleLinePrompt}" -Encoding utf8
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::AppendAllText($promptFile, "- ${date}: ${singleLinePrompt}`n", $utf8NoBom)

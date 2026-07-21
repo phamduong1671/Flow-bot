@@ -62,6 +62,27 @@ npm test
 npm run build
 ```
 
+## Deploy backend lên Render
+
+Repository có Blueprint [render.yaml](./render.yaml) để tạo một Node web service tại Singapore. Cấu hình dùng gói `starter` và persistent disk 1 GB tại `/var/data`, vì filesystem mặc định của Render là tạm thời và không phù hợp với file database hiện tại.
+
+1. Push repository lên GitHub.
+2. Trong Render Dashboard, chọn **New → Blueprint**, kết nối repository và dùng file `render.yaml`.
+3. Nhập các biến được Render yêu cầu:
+   - `CLIENT_ORIGIN`: origin GitHub Pages, ví dụ `https://your-account.github.io` (không thêm `/Flow-bot/`).
+   - `OPENAI_API_KEY`: API key backend.
+   - `OPENAI_VECTOR_STORE_ID`: ID dạng `vs_...`.
+   - `TAVILY_API_KEY`: API key web search.
+4. Sau khi deploy, kiểm tra `https://<service>.onrender.com/api/health` trả về `{ "ok": true }`.
+5. Trong GitHub repository, mở **Settings → Secrets and variables → Actions → Variables** và thêm:
+   - `VITE_API_URL=https://<service>.onrender.com`
+   - `VITE_GOOGLE_CLIENT_ID` nếu dùng Google Sign-In.
+6. Chạy lại workflow **Deploy to GitHub Pages** để frontend build với URL backend.
+
+Để bật Google Sign-In và Langfuse, thêm thủ công `GOOGLE_CLIENT_ID`, `LANGFUSE_PUBLIC_KEY` và `LANGFUSE_SECRET_KEY` trong phần Environment của Render. Không đưa các secret này vào GitHub variables có tiền tố `VITE_`.
+
+`server/data/db.json` local không tự động được tải lên persistent disk. Deployment mới sẽ tạo database rỗng tại `/var/data/db.json` khi có lần ghi đầu tiên.
+
 Chạy flow mẫu thật sau khi cấu hình provider keys:
 
 ```bash
