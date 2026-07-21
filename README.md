@@ -62,26 +62,28 @@ npm test
 npm run build
 ```
 
-## Deploy backend lên Render
+## Deploy backend lên Railway
 
-Repository có Blueprint [render.yaml](./render.yaml) để tạo một Node web service tại Singapore. Cấu hình dùng gói `starter` và persistent disk 1 GB tại `/var/data`, vì filesystem mặc định của Render là tạm thời và không phù hợp với file database hiện tại.
+Repository có [railway.json](./railway.json) dùng Railpack, chạy API bằng `npm run start:api`, kiểm tra `/api/health` và tự khởi động lại khi process lỗi.
 
 1. Push repository lên GitHub.
-2. Trong Render Dashboard, chọn **New → Blueprint**, kết nối repository và dùng file `render.yaml`.
-3. Nhập các biến được Render yêu cầu:
+2. Trong Railway, chọn **New Project → Deploy from GitHub repo** và chọn repository này.
+3. Trong service **Variables**, thêm:
    - `CLIENT_ORIGIN`: origin GitHub Pages, ví dụ `https://your-account.github.io` (không thêm `/Flow-bot/`).
+   - `JWT_SECRET`: chuỗi bí mật dài, ngẫu nhiên.
    - `OPENAI_API_KEY`: API key backend.
+   - `OPENAI_MODEL`: ví dụ `gpt-5.6-terra`.
    - `OPENAI_VECTOR_STORE_ID`: ID dạng `vs_...`.
    - `TAVILY_API_KEY`: API key web search.
-4. Sau khi deploy, kiểm tra `https://<service>.onrender.com/api/health` trả về `{ "ok": true }`.
-5. Trong GitHub repository, mở **Settings → Secrets and variables → Actions → Variables** và thêm:
-   - `VITE_API_URL=https://<service>.onrender.com`
+   - `GOOGLE_CLIENT_ID`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` nếu dùng các tính năng tương ứng.
+4. Gắn một Railway Volume vào service, đặt mount path là `/data`. Backend tự đọc `RAILWAY_VOLUME_MOUNT_PATH` và lưu database vào `/data/db.json`.
+5. Mở **Settings → Networking → Generate Domain**, sau đó kiểm tra `https://<service>.up.railway.app/api/health` trả về `{ "ok": true }`.
+6. Trong GitHub repository, mở **Settings → Secrets and variables → Actions → Variables** và thêm:
+   - `VITE_API_URL=https://<service>.up.railway.app`
    - `VITE_GOOGLE_CLIENT_ID` nếu dùng Google Sign-In.
-6. Chạy lại workflow **Deploy to GitHub Pages** để frontend build với URL backend.
+7. Chạy lại workflow **Deploy to GitHub Pages** để frontend build với URL backend.
 
-Để bật Google Sign-In và Langfuse, thêm thủ công `GOOGLE_CLIENT_ID`, `LANGFUSE_PUBLIC_KEY` và `LANGFUSE_SECRET_KEY` trong phần Environment của Render. Không đưa các secret này vào GitHub variables có tiền tố `VITE_`.
-
-`server/data/db.json` local không tự động được tải lên persistent disk. Deployment mới sẽ tạo database rỗng tại `/var/data/db.json` khi có lần ghi đầu tiên.
+Không đưa API key hoặc secret vào biến frontend có tiền tố `VITE_`. File `server/data/db.json` local không tự động được tải lên Volume; deployment mới sẽ tạo database rỗng tại mount path khi có lần ghi đầu tiên.
 
 Chạy flow mẫu thật sau khi cấu hình provider keys:
 

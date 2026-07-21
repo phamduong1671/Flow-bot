@@ -2,7 +2,9 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Database, Flow, FlowRecord, UserRecord } from './types.js';
 
-const dataDirectory = path.resolve(process.env.DATA_DIR || 'server/data');
+const dataDirectory = path.resolve(
+  process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || 'server/data',
+);
 const databasePath = path.join(dataDirectory, 'db.json');
 const emptyDatabase: Database = { users: [], flows: {} };
 let writeQueue = Promise.resolve();
