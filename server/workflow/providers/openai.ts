@@ -72,7 +72,7 @@ export function createOpenAiProvider(
     async generate({ prompt, systemPrompt, model }): Promise<LlmOutput> {
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) throw new Error('OPENAI_API_KEY is not configured on the server.');
-      const selectedModel = model || process.env.OPENAI_MODEL || 'gpt-5.6-terra';
+      const selectedModel = model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
       const controller = new AbortController();
       const timeout = setTimeout(
         () => controller.abort(),

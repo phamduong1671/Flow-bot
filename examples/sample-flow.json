@@ -27,7 +27,7 @@
       "label": "Answer with LLM",
       "position": { "x": 2280, "y": 1344 },
       "data": {
-        "model": "gpt-5.6-terra",
+        "model": "gpt-4o-mini",
         "systemPrompt": "Answer accurately using the supplied context.",
         "prompt": "Question: {{query}}\n\nRAG context: {{rag_results.results}}\n\nWeb context: {{web_results.results}}",
         "outputVariable": "llm_output"

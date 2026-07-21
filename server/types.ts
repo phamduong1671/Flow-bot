@@ -35,8 +35,3 @@ export type UserRecord = {
   googleSubject?: string;
   createdAt: string;
 };
-
-export type Database = {
-  users: UserRecord[];
-  flows: Record<string, FlowRecord>;
-};
