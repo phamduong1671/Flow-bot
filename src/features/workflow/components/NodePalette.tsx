@@ -1,11 +1,11 @@
-import { ChevronLeft, ChevronRight, Hand, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Hand, Plus, WandSparkles } from 'lucide-react';
 import { BaseButton } from '../../../components/base/BaseButton';
 import { HEADER_HEIGHT, NODE_TYPES } from '../../../constants';
 
-export function NodePalette({ open, onToggle, onDragStart }) {
+export function NodePalette({ open, onToggle, onDragStart, showSampleAction, onUseSampleFlow }) {
   return (
     <aside
-      className={`absolute left-0 z-20 w-[260px] overflow-visible border-r border-slate-200 bg-white shadow-panel transition-transform ${open ? 'translate-x-0' : '-translate-x-full'}`}
+      className={`absolute left-0 z-20 flex min-h-0 w-[260px] flex-col overflow-visible border-r border-slate-200 bg-white shadow-panel transition-transform ${open ? 'translate-x-0' : '-translate-x-full'}`}
       style={{ top: HEADER_HEIGHT, height: `calc(100% - ${HEADER_HEIGHT}px)` }}
     >
       <BaseButton
@@ -17,11 +17,26 @@ export function NodePalette({ open, onToggle, onDragStart }) {
       >
         {open ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </BaseButton>
-      <div className="h-full overflow-auto p-4">
-        <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
-          <Plus size={18} />
-          Node palette
+      <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <Plus size={18} className="shrink-0" />
+          <span>Node palette</span>
         </div>
+        {showSampleAction && (
+          <BaseButton
+            onClick={onUseSampleFlow}
+            variant="secondary"
+            size="sm"
+            className="h-8 shrink-0 px-2"
+            title="Use sample flow"
+          >
+            <WandSparkles size={14} />
+            Use sample
+          </BaseButton>
+        )}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
         <div className="space-y-3">
           {Object.entries(NODE_TYPES).map(([type, spec]) => {
             const Icon = spec.icon;
@@ -47,7 +62,10 @@ export function NodePalette({ open, onToggle, onDragStart }) {
             );
           })}
         </div>
-        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+      </div>
+
+      <div className="shrink-0 border-t border-slate-200 p-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
           <div className="mb-2 flex items-center gap-2 font-semibold text-slate-700">
             <Hand size={16} />
             Controls

@@ -11,6 +11,7 @@ import { useCanvasInteractions } from './features/workflow/hooks/useCanvasIntera
 import { useFlowSelection } from './features/workflow/hooks/useFlowSelection';
 import { usePersistentFlow } from './features/workflow/hooks/usePersistentFlow';
 import { useRunner } from './features/workflow/hooks/useRunner';
+import { cloneSampleFlow } from './features/workflow/utils/flow';
 
 function App() {
   const {
@@ -68,6 +69,17 @@ function App() {
   function handlePaletteDragStart(event, type) {
     event.dataTransfer.setData('application/flow-node', type);
     event.dataTransfer.effectAllowed = 'copy';
+  }
+
+  function useSampleFlow() {
+    const sample = cloneSampleFlow();
+    setNodes(sample.nodes);
+    setEdges(sample.edges);
+    setConnectingFrom(null);
+    setJsonOutput('');
+    setCopied(false);
+    selection.setSelectedIds([]);
+    selection.setSelectedEdgeId(null);
   }
 
   function updateSelectedNode(path, value) {
@@ -133,6 +145,8 @@ function App() {
           open={paletteOpen}
           onToggle={() => setPaletteOpen((open) => !open)}
           onDragStart={handlePaletteDragStart}
+          showSampleAction={nodes.length === 0 && edges.length === 0}
+          onUseSampleFlow={useSampleFlow}
         />
 
         <div className="flex h-full min-h-0 flex-col">
@@ -206,7 +220,7 @@ function App() {
           onDownloadJson={downloadJson}
           jsonText={jsonText}
         />
-        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+        {authOpen && <AuthModal open onClose={() => setAuthOpen(false)} />}
       </section>
     </main>
   );

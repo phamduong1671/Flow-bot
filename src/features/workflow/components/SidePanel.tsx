@@ -1,12 +1,4 @@
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Download,
-  MousePointer2,
-  Trash2,
-} from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Copy, Download, Trash2 } from 'lucide-react';
 import { BaseButton } from '../../../components/base/BaseButton';
 import { BaseInput } from '../../../components/base/BaseInput';
 import { NodeConfigForm } from '../node-config/NodeConfigForm';
@@ -49,10 +41,9 @@ export function SidePanel({
 
       <div className="min-h-0 flex-1 overflow-auto">
         {selectedCount > 0 && (
-          <div className="border-b border-slate-200 p-4">
+          <div className="border-b border-slate-200 p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <MousePointer2 size={18} />
                 Inspector
               </div>
               <BaseButton
@@ -87,7 +78,7 @@ export function SidePanel({
           />
         )}
 
-        <div className="flex h-[360px] flex-col p-4">
+        <div className="flex h-[360px] flex-col p-6">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="text-sm font-semibold text-slate-700">JSON output</div>
             <div className="flex gap-2">
@@ -125,7 +116,7 @@ function ConnectionList(props) {
     props;
 
   return (
-    <div className="border-b border-slate-200 p-4">
+    <div className="border-b border-slate-200 p-6">
       <div className="mb-3 text-sm font-semibold text-slate-700">Connections</div>
       {selectedEdge && (
         <div className="mb-3 space-y-2 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-950">
