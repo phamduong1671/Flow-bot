@@ -93,7 +93,7 @@ export const NODE_TYPES = {
     accent: 'bg-fuchsia-600',
     icon: BrainCircuit,
     defaults: {
-      model: 'gpt-5.6-terra',
+      model: 'gpt-4o-mini',
       systemPrompt: 'Answer accurately using the supplied context.',
       prompt:
         'Question: {{query}}\n\nRAG context: {{rag_results.results}}\n\nWeb context: {{web_results.results}}',
