@@ -35,6 +35,7 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
+  const [language, setLanguage] = useState<'vi' | 'en'>('vi');
 
   const selection = useFlowSelection({ nodes, edges, setNodes, setEdges });
   const runner = useRunner(nodes, edges, { flowId: activeFlowId, beforeRemoteRun: saveNow });
@@ -103,6 +104,12 @@ function App() {
 
   function handleInputClick(targetId) {
     if (!connectingFrom || connectingFrom === targetId) return;
+    const source = nodes.find((node) => node.id === connectingFrom);
+    const target = nodes.find((node) => node.id === targetId);
+    if (source?.type === 'output' || target?.type === 'start') {
+      setConnectingFrom(null);
+      return;
+    }
     const edgeExists = edges.some(
       (edge) => edge.source === connectingFrom && edge.target === targetId,
     );
@@ -162,6 +169,8 @@ function App() {
             onSelectFlow={selectFlow}
             onCreateFlow={createNewFlow}
             onDeleteFlow={deleteActiveFlow}
+            language={language}
+            onToggleLanguage={() => setLanguage((current) => (current === 'vi' ? 'en' : 'vi'))}
           />
           <FlowCanvas
             canvas={canvas}

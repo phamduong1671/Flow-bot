@@ -14,6 +14,8 @@ export function FlowNode({
 }) {
   const spec = NODE_TYPES[node.type];
   const Icon = spec.icon;
+  const hasInputPort = node.type !== 'start';
+  const hasOutputPort = node.type !== 'output';
 
   return (
     <BaseCard
@@ -30,36 +32,47 @@ export function FlowNode({
       className={`pointer-events-auto absolute w-56 select-none will-change-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${connecting ? 'ring-4 ring-indigo-200' : ''}`}
       style={{ transform: `translate(${node.position.x}px, ${node.position.y}px)` }}
     >
-      <BaseButton
-        data-port="input"
-        onClick={(event) => {
-          event.stopPropagation();
-          onInputClick(node.id);
-        }}
-        variant="ghost"
-        size="auto"
-        className="absolute -left-2.5 top-10 h-5 w-5 rounded-full border-2 border-white bg-slate-500 shadow hover:bg-slate-700"
-        title="Input port"
-      />
-      <BaseButton
-        data-port="output"
-        onClick={(event) => {
-          event.stopPropagation();
-          onOutputClick(node.id);
-        }}
-        variant="ghost"
-        size="auto"
-        className={`absolute -right-2.5 top-10 h-5 w-5 rounded-full border-2 border-white shadow ${connecting ? 'bg-indigo-600' : 'bg-slate-500 hover:bg-slate-700'}`}
-        title="Output port"
-      />
+      {hasInputPort && (
+        <BaseButton
+          data-port="input"
+          onClick={(event) => {
+            event.stopPropagation();
+            onInputClick(node.id);
+          }}
+          variant="ghost"
+          size="auto"
+          className="absolute -left-2.5 top-10 h-5 w-5 rounded-full border-2 border-white bg-slate-500 shadow hover:bg-slate-700"
+          title="Input port"
+        />
+      )}
+      {hasOutputPort && (
+        <BaseButton
+          data-port="output"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOutputClick(node.id);
+          }}
+          variant="ghost"
+          size="auto"
+          className={`absolute -right-2.5 top-10 h-5 w-5 rounded-full border-2 border-white shadow ${connecting ? 'bg-indigo-600' : 'bg-slate-500 hover:bg-slate-700'}`}
+          title="Output port"
+        />
+      )}
       <div className={`flex items-center gap-2 rounded-t-md border-b px-3 py-2 ${spec.color}`}>
         <span className={`grid h-8 w-8 place-items-center rounded-md text-white ${spec.accent}`}>
           <Icon size={17} />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold">{node.label}</div>
           <div className="truncate text-xs font-medium text-current">{spec.title}</div>
         </div>
+        <span
+          aria-label={spec.help}
+          className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 bg-white/70 text-[11px] font-bold"
+          title={spec.help}
+        >
+          ?
+        </span>
       </div>
       <div className="space-y-2 p-3 text-xs text-slate-800">
         {Object.entries(node.data)
