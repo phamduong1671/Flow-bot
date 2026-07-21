@@ -13,6 +13,7 @@ export function RunnerPanel({
   onSubmit,
 }) {
   if (!runner.open) return null;
+  const conversationMessages = runner.messages.filter(isConversationMessage);
 
   return (
     <section
@@ -58,21 +59,20 @@ export function RunnerPanel({
       </div>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-auto bg-slate-50 p-4">
-        {runner.messages.filter(isConversationMessage).length === 0 ? (
+        {conversationMessages.length === 0 && runner.status !== 'running' ? (
           <div className="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
             {runner.status === 'waiting'
               ? 'Enter your message below to start the workflow.'
-              : runner.status === 'running'
-                ? 'Workflow is running…'
-                : runner.status === 'error'
-                  ? 'Run failed. Open LLM monitoring for details.'
-                  : 'Click Run to start the flow.'}
+              : runner.status === 'error'
+                ? 'Run failed. Open LLM monitoring for details.'
+                : 'Click Run to start the flow.'}
           </div>
         ) : (
-          runner.messages
-            .filter(isConversationMessage)
-            .map((message) => <RunnerMessage key={message.id} message={message} />)
+          conversationMessages.map((message) => (
+            <RunnerMessage key={message.id} message={message} />
+          ))
         )}
+        {runner.status === 'running' && <TypingIndicator />}
       </div>
 
       <form onSubmit={onSubmit} className="border-t border-slate-200 p-3">
@@ -99,6 +99,26 @@ export function RunnerPanel({
 
 function isConversationMessage(message) {
   return message.role === 'user' || message.role === 'bot';
+}
+
+function TypingIndicator() {
+  return (
+    <div
+      aria-label="Bot is typing"
+      className="flex w-fit items-center gap-1 rounded-lg bg-white px-3 py-3 shadow-sm"
+      role="status"
+    >
+      {[0, 1, 2].map((dot) => (
+        <span
+          aria-hidden="true"
+          className="h-2 w-2 animate-bounce rounded-full bg-slate-400"
+          key={dot}
+          style={{ animationDelay: `${dot * 140}ms` }}
+        />
+      ))}
+      <span className="sr-only">Bot is typing</span>
+    </div>
+  );
 }
 
 function RunnerMessage({ message }) {
