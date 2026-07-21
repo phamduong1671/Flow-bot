@@ -13,6 +13,7 @@ export type LlmOutput = {
   text: string;
   model: string;
   inputTokens?: number;
+  cachedInputTokens?: number;
   outputTokens?: number;
   totalTokens?: number;
   costUsd?: number;
@@ -251,6 +252,7 @@ async function executeNode(
         model: output.model,
         prompt,
         inputTokens: output.inputTokens,
+        cachedInputTokens: output.cachedInputTokens,
         outputTokens: output.outputTokens,
         totalTokens: output.totalTokens,
         costUsd: output.costUsd,

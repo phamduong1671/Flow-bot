@@ -10,10 +10,12 @@ export function LlmMonitoring({ open, trace, onClose }) {
     (total, step) => total + Number(step.telemetry?.totalTokens || 0),
     0,
   );
-  const totalCost = generations.reduce(
-    (total, step) => total + Number(step.telemetry?.costUsd || 0),
-    0,
-  );
+  const generationCosts = generations.map((step) => step.telemetry?.costUsd);
+  const totalCost =
+    generationCosts.length > 0 &&
+    generationCosts.every((cost) => typeof cost === 'number' && Number.isFinite(cost))
+      ? generationCosts.reduce((total, cost) => total + Number(cost), 0)
+      : undefined;
   const latencyMs = Number(
     trace?.latencyMs || steps.reduce((total, step) => total + Number(step.latencyMs || 0), 0),
   );
@@ -182,7 +184,7 @@ function GenerationDetails({ step }) {
         <SmallMetric label="Input" value={`${formatNumber(telemetry.inputTokens || 0)} tokens`} />
         <SmallMetric label="Output" value={`${formatNumber(telemetry.outputTokens || 0)} tokens`} />
         <SmallMetric label="Latency" value={formatLatency(step.latencyMs)} />
-        <SmallMetric label="Cost" value={formatCost(telemetry.costUsd || 0)} />
+        <SmallMetric label="Cost" value={formatCost(telemetry.costUsd)} />
       </div>
       <div className="grid gap-4 px-4 pb-4 lg:grid-cols-2">
         <PayloadCard title="Prompt" value={telemetry.prompt} />
@@ -240,8 +242,11 @@ function formatNumber(value) {
 }
 
 function formatCost(value) {
-  const cost = Number(value || 0);
-  return cost ? `$${cost.toFixed(6)}` : '$0.000000';
+  if (value === undefined || value === null || value === '') return '—';
+  const cost = Number(value);
+  if (!Number.isFinite(cost)) return '—';
+  if (cost > 0 && cost < 0.000001) return `$${cost.toFixed(8)}`;
+  return `$${cost.toFixed(6)}`;
 }
 
 function formatPayload(value) {

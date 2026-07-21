@@ -31,6 +31,48 @@ test('OpenAI adapter keeps the API key in the backend request and records usage'
   );
 });
 
+test('OpenAI adapter estimates cost for dated models and cached input tokens', async () => {
+  const pricingEnvironment = [
+    'OPENAI_INPUT_COST_PER_MILLION',
+    'OPENAI_CACHED_INPUT_COST_PER_MILLION',
+    'OPENAI_OUTPUT_COST_PER_MILLION',
+  ] as const;
+  const previousValues = Object.fromEntries(
+    pricingEnvironment.map((name) => [name, process.env[name]]),
+  );
+  for (const name of pricingEnvironment) delete process.env[name];
+
+  try {
+    process.env.OPENAI_API_KEY = 'server-only-key';
+    const provider = createOpenAiProvider({
+      fetchImpl: (async () =>
+        new Response(
+          JSON.stringify({
+            model: 'gpt-4o-mini-2024-07-18',
+            output_text: 'priced response',
+            usage: {
+              input_tokens: 1_000,
+              input_tokens_details: { cached_tokens: 200 },
+              output_tokens: 500,
+              total_tokens: 1_500,
+            },
+          }),
+          { status: 200 },
+        )) as typeof fetch,
+    });
+
+    const output = await provider.generate({ prompt: 'price this response' });
+    assert.equal(output.cachedInputTokens, 200);
+    assert.ok(Math.abs(Number(output.costUsd) - 0.000435) < Number.EPSILON);
+  } finally {
+    for (const name of pricingEnvironment) {
+      const previousValue = previousValues[name];
+      if (previousValue === undefined) delete process.env[name];
+      else process.env[name] = previousValue;
+    }
+  }
+});
+
 test('Langfuse creates one trace with node observations and fails open', async () => {
   process.env.LANGFUSE_PUBLIC_KEY = 'public';
   process.env.LANGFUSE_SECRET_KEY = 'secret';

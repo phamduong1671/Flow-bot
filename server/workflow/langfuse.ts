@@ -98,6 +98,7 @@ export function createLangfuseObserver(
         const generation = details.node.type === 'llm' || telemetry.asType === 'generation';
         const usageDetails = {
           input: telemetry.inputTokens,
+          input_cached: telemetry.cachedInputTokens,
           output: telemetry.outputTokens,
           total: telemetry.totalTokens,
         };

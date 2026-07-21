@@ -12,3 +12,4 @@ Prompt history starts from the next user prompt after this file was reset.
 - 2026-07-21: thực hiện các yêu cầu sau: 1. giữ Node palette cố định chiều cao giống Side panel, chỉ scroll các node. 2. khi canvas trống (không có node và connection) hiện một button để dùng flow mẫu; vị trí: bên trong Note palette, cùng hàng tiêu đề 'Node palette'.
 - 2026-07-21: fix: khi click button đăng nhập vẫn hiện form đăng ký (khi form đăng ký được mở từ trước)
 - 2026-07-21: thêm hoạt ảnh đang nhập tin nhắn khi flow runner is running
+- 2026-07-21: estimated cost hiện chỉ trả về 0.000000. kiểm tra và fix lại
