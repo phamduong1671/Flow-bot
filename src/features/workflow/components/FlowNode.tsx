@@ -75,7 +75,9 @@ export function FlowNode({
           .slice(0, 2)
           .map(([key, value]) => (
             <div key={key} className="rounded-md bg-slate-100 px-2 py-1.5">
-              <span className="font-bold text-slate-700">{nodeFieldKeys[key] ? t(nodeFieldKeys[key]) : key}: </span>
+              <span className="font-bold text-slate-700">
+                {nodeFieldKeys[key] ? t(nodeFieldKeys[key]) : key}:{' '}
+              </span>
               <span className="font-medium text-slate-900">{String(value)}</span>
             </div>
           ))}

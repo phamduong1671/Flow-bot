@@ -83,11 +83,7 @@ export function RunnerPanel({
             value={input}
             onChange={onInputChange}
             disabled={runner.status !== 'waiting'}
-            placeholder={
-              runner.status === 'waiting'
-                ? t('typeAnswer')
-                : t('runnerNotWaiting')
-            }
+            placeholder={runner.status === 'waiting' ? t('typeAnswer') : t('runnerNotWaiting')}
             className="min-w-0 flex-1"
           />
           <BaseButton type="submit" disabled={runner.status !== 'waiting'} variant="primary">
@@ -124,7 +120,14 @@ function TypingIndicator({ label }) {
 }
 
 function statusKey(status): TranslationKey {
-  const keys: Record<string, TranslationKey> = { idle: 'statusIdle', waiting: 'statusWaiting', running: 'statusRunning', ended: 'statusEnded', error: 'statusError', completed: 'statusCompleted' };
+  const keys: Record<string, TranslationKey> = {
+    idle: 'statusIdle',
+    waiting: 'statusWaiting',
+    running: 'statusRunning',
+    ended: 'statusEnded',
+    error: 'statusError',
+    completed: 'statusCompleted',
+  };
   return keys[status] || 'statusIdle';
 }
 

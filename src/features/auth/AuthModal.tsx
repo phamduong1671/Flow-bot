@@ -42,7 +42,11 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             await auth.loginWithGoogle(credential);
             onClose();
           } catch (reason) {
-            setError(reason instanceof Error ? getLocalizedAuthError(reason.message, t) : t('googleLoginFailed'));
+            setError(
+              reason instanceof Error
+                ? getLocalizedAuthError(reason.message, t)
+                : t('googleLoginFailed'),
+            );
           } finally {
             setLoading(false);
           }
@@ -72,7 +76,9 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
       await auth[mode](email, password);
       onClose();
     } catch (reason) {
-      setError(reason instanceof Error ? getLocalizedAuthError(reason.message, t) : t('loginFailed'));
+      setError(
+        reason instanceof Error ? getLocalizedAuthError(reason.message, t) : t('loginFailed'),
+      );
     } finally {
       setLoading(false);
     }

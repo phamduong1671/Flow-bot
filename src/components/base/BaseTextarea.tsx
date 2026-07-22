@@ -26,7 +26,9 @@ export function BaseTextarea({
 
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
       {textarea}
     </label>
   );

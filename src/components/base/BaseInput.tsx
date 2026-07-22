@@ -6,13 +6,7 @@ type BaseInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & 
   onChange: (value: string) => void;
 };
 
-export function BaseInput({
-  label,
-  value,
-  onChange,
-  className = '',
-  ...props
-}: BaseInputProps) {
+export function BaseInput({ label, value, onChange, className = '', ...props }: BaseInputProps) {
   const input = (
     <input
       value={value}
@@ -26,7 +20,9 @@ export function BaseInput({
 
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
       {input}
     </label>
   );

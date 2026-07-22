@@ -145,10 +145,7 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
 
     const questionNode = nodes.find((node) => node.id === waitingNodeId);
     if (!questionNode) {
-      setMessages((current) => [
-        ...current,
-        createRunnerMessage('error', t('waitingNodeRemoved')),
-      ]);
+      setMessages((current) => [...current, createRunnerMessage('error', t('waitingNodeRemoved'))]);
       setStatus('error');
       return;
     }
