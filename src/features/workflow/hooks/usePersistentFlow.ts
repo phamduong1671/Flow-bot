@@ -4,6 +4,7 @@ import { apiRequest } from '../../auth/api';
 import { useAuth } from '../../auth/AuthContext';
 import { buildScenario, cloneSampleFlow, loadSavedFlow } from '../utils/flow';
 import type { WorkflowEdge, WorkflowNode } from '../types';
+import { useLanguage } from '../../../i18n';
 
 type FlowRecord = {
   id: string;
@@ -16,6 +17,9 @@ type FlowRecord = {
 };
 
 export function usePersistentFlow() {
+  const { t } = useLanguage();
+  const translationRef = useRef(t);
+  translationRef.current = t;
   const { token, user } = useAuth();
   const savedFlow = useMemo(() => loadSavedFlow(), []);
   const [nodes, setNodes] = useState(savedFlow.nodes);
@@ -74,7 +78,7 @@ export function usePersistentFlow() {
           signedInFromGuest &&
           hasLocalFlow &&
           !localMatchesRemote &&
-          window.confirm('Save the flow currently on this device to your account?');
+          window.confirm(translationRef.current('saveGuestFlow'));
         if (saveGuestFlow || !nextFlows.length) {
           const flowToCreate =
             signedInFromGuest && hasLocalFlow && !saveGuestFlow ? { nodes: [], edges: [] } : local;
@@ -155,7 +159,7 @@ export function usePersistentFlow() {
   }
 
   async function deleteActiveFlow() {
-    if (!token || !activeFlowId || !window.confirm('Delete this flow permanently?')) return;
+    if (!token || !activeFlowId || !window.confirm(t('deleteFlowConfirm'))) return;
     setSaveStatus('saving');
     try {
       await apiRequest(`/api/flows/${activeFlowId}`, { method: 'DELETE' }, token);

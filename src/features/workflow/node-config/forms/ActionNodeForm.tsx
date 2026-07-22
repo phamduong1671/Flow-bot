@@ -1,6 +1,6 @@
 import { BaseInput } from '../../../../components/base/BaseInput';
 import { BaseTextarea } from '../../../../components/base/BaseTextarea';
-import { NODE_TYPES } from '../../../../constants';
+import { useLanguage } from '../../../../i18n';
 import type { NodeFieldChange, WorkflowNode } from '../../types';
 import { NodeFormFields } from './NodeFormFields';
 
@@ -10,19 +10,17 @@ type ActionNodeFormProps = {
 };
 
 export function ActionNodeForm({ node, onChange }: ActionNodeFormProps) {
-  const help = NODE_TYPES.action.fieldHelp;
+  const { t } = useLanguage();
 
   return (
     <NodeFormFields node={node} onChange={onChange}>
       <BaseInput
-        label="Action"
-        helpText={help.action}
+        label={t('fieldAction')}
         value={node.data.action || ''}
         onChange={(value) => onChange('action', value)}
       />
       <BaseTextarea
-        label="Payload"
-        helpText={help.payload}
+        label={t('fieldPayload')}
         value={node.data.payload || ''}
         onChange={(value) => onChange('payload', value)}
         rows={4}

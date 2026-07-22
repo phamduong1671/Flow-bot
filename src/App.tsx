@@ -12,8 +12,10 @@ import { useFlowSelection } from './features/workflow/hooks/useFlowSelection';
 import { usePersistentFlow } from './features/workflow/hooks/usePersistentFlow';
 import { useRunner } from './features/workflow/hooks/useRunner';
 import { cloneSampleFlow } from './features/workflow/utils/flow';
+import { useLanguage } from './i18n';
 
 function App() {
+  const { language, toggleLanguage } = useLanguage();
   const {
     nodes,
     setNodes,
@@ -35,7 +37,6 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
-  const [language, setLanguage] = useState<'vi' | 'en'>('vi');
 
   const selection = useFlowSelection({ nodes, edges, setNodes, setEdges });
   const runner = useRunner(nodes, edges, { flowId: activeFlowId, beforeRemoteRun: saveNow });
@@ -170,7 +171,7 @@ function App() {
             onCreateFlow={createNewFlow}
             onDeleteFlow={deleteActiveFlow}
             language={language}
-            onToggleLanguage={() => setLanguage((current) => (current === 'vi' ? 'en' : 'vi'))}
+            onToggleLanguage={toggleLanguage}
           />
           <FlowCanvas
             canvas={canvas}

@@ -1,6 +1,7 @@
 import { BaseCard } from '../../../components/base/BaseCard';
 import { BaseButton } from '../../../components/base/BaseButton';
 import { NODE_TYPES } from '../../../constants';
+import { nodeFieldKeys, useLanguage } from '../../../i18n';
 
 export function FlowNode({
   node,
@@ -12,7 +13,9 @@ export function FlowNode({
   onInputClick,
   onOutputClick,
 }) {
+  const { t, nodeText } = useLanguage();
   const spec = NODE_TYPES[node.type];
+  const text = nodeText(node.type);
   const Icon = spec.icon;
   const hasInputPort = node.type !== 'start';
   const hasOutputPort = node.type !== 'output';
@@ -42,7 +45,7 @@ export function FlowNode({
           variant="ghost"
           size="auto"
           className="absolute -left-2.5 top-10 h-5 w-5 rounded-full border-2 border-white bg-slate-500 shadow hover:bg-slate-700"
-          title="Input port"
+          title={t('inputPort')}
         />
       )}
       {hasOutputPort && (
@@ -55,7 +58,7 @@ export function FlowNode({
           variant="ghost"
           size="auto"
           className={`absolute -right-2.5 top-10 h-5 w-5 rounded-full border-2 border-white shadow ${connecting ? 'bg-indigo-600' : 'bg-slate-500 hover:bg-slate-700'}`}
-          title="Output port"
+          title={t('outputPort')}
         />
       )}
       <div className={`flex items-center gap-2 rounded-t-md border-b px-3 py-2 ${spec.color}`}>
@@ -64,22 +67,15 @@ export function FlowNode({
         </span>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold">{node.label}</div>
-          <div className="truncate text-xs font-medium text-current">{spec.title}</div>
+          <div className="truncate text-xs font-medium text-current">{text.title}</div>
         </div>
-        <span
-          aria-label={spec.help}
-          className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 bg-white/70 text-[11px] font-bold"
-          title={spec.help}
-        >
-          ?
-        </span>
       </div>
       <div className="space-y-2 p-3 text-xs text-slate-800">
         {Object.entries(node.data)
           .slice(0, 2)
           .map(([key, value]) => (
             <div key={key} className="rounded-md bg-slate-100 px-2 py-1.5">
-              <span className="font-bold text-slate-700">{key}: </span>
+              <span className="font-bold text-slate-700">{nodeFieldKeys[key] ? t(nodeFieldKeys[key]) : key}: </span>
               <span className="font-medium text-slate-900">{String(value)}</span>
             </div>
           ))}

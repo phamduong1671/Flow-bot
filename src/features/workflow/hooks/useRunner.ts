@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { apiRequest } from '../../auth/api';
 import { useAuth } from '../../auth/AuthContext';
 import { createRunnerMessage, executeFlowUntilPause, pickNextEdge } from '../utils/runner';
+import { useLanguage } from '../../../i18n';
 
 const emptyContext = { variables: {}, actions: [] };
 
 export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
+  const { t } = useLanguage();
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -53,7 +55,7 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
       setContext(emptyContext);
       setWaitingNodeId('__remote_workflow__');
       setStatus('waiting');
-      setMessages([createRunnerMessage('system', 'Enter the workflow input, then press Send.')]);
+      setMessages([createRunnerMessage('system', t('enterWorkflowInput'))]);
       return;
     }
     const startNode = nodes.find((node) => node.type === 'start');
@@ -63,7 +65,7 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
 
     if (!startNode) {
       setStatus('error');
-      setMessages([createRunnerMessage('error', 'Flow needs one Start node before it can run.')]);
+      setMessages([createRunnerMessage('error', t('needsStartNode'))]);
       return;
     }
 
@@ -132,7 +134,7 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
           endedAt: new Date().toISOString(),
           steps: [],
           error: {
-            message: reason instanceof Error ? reason.message : 'Workflow run failed.',
+            message: reason instanceof Error ? reason.message : t('workflowRunFailed'),
             ...(details && typeof details === 'object' ? details : {}),
           },
         });
@@ -145,7 +147,7 @@ export function useRunner(nodes, edges, { flowId, beforeRemoteRun }) {
     if (!questionNode) {
       setMessages((current) => [
         ...current,
-        createRunnerMessage('error', 'Waiting question node was removed.'),
+        createRunnerMessage('error', t('waitingNodeRemoved')),
       ]);
       setStatus('error');
       return;

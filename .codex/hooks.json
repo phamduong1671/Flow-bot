@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/log-prompt.ps1",
+            "command": "bash .codex/hooks/log-prompt.sh",
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/log-prompt.ps1",
             "timeout": 10,
             "statusMessage": "Logging user prompt"

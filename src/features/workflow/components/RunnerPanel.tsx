@@ -1,6 +1,7 @@
 import { Activity, RotateCcw, X } from 'lucide-react';
 import { BaseButton } from '../../../components/base/BaseButton';
 import { BaseInput } from '../../../components/base/BaseInput';
+import { useLanguage, type TranslationKey } from '../../../i18n';
 
 export function RunnerPanel({
   runner,
@@ -12,6 +13,7 @@ export function RunnerPanel({
   onInputChange,
   onSubmit,
 }) {
+  const { t } = useLanguage();
   if (!runner.open) return null;
   const conversationMessages = runner.messages.filter(isConversationMessage);
 
@@ -24,8 +26,8 @@ export function RunnerPanel({
     >
       <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
         <div>
-          <div className="text-sm font-semibold text-slate-800">Flow Runner</div>
-          <div className="text-xs capitalize text-slate-500">{runner.status}</div>
+          <div className="text-sm font-semibold text-slate-800">{t('flowRunner')}</div>
+          <div className="text-xs text-slate-500">{t(statusKey(runner.status))}</div>
         </div>
         <div className="flex gap-2">
           <BaseButton
@@ -33,7 +35,7 @@ export function RunnerPanel({
             variant="secondary"
             size="icon-sm"
             className="text-slate-600"
-            title="LLM monitoring"
+            title={t('llmMonitoring')}
           >
             <Activity size={16} />
           </BaseButton>
@@ -42,7 +44,7 @@ export function RunnerPanel({
             variant="secondary"
             size="icon-sm"
             className="text-slate-600"
-            title="Restart runner"
+            title={t('restartRunner')}
           >
             <RotateCcw size={15} />
           </BaseButton>
@@ -51,7 +53,7 @@ export function RunnerPanel({
             variant="secondary"
             size="icon-sm"
             className="text-slate-600"
-            title="Close runner"
+            title={t('closeRunner')}
           >
             <X size={16} />
           </BaseButton>
@@ -62,17 +64,17 @@ export function RunnerPanel({
         {conversationMessages.length === 0 && runner.status !== 'running' ? (
           <div className="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
             {runner.status === 'waiting'
-              ? 'Enter your message below to start the workflow.'
+              ? t('enterToStart')
               : runner.status === 'error'
-                ? 'Run failed. Open LLM monitoring for details.'
-                : 'Click Run to start the flow.'}
+                ? t('runFailedDetails')
+                : t('clickRun')}
           </div>
         ) : (
           conversationMessages.map((message) => (
             <RunnerMessage key={message.id} message={message} />
           ))
         )}
-        {runner.status === 'running' && <TypingIndicator />}
+        {runner.status === 'running' && <TypingIndicator label={t('botTyping')} />}
       </div>
 
       <form onSubmit={onSubmit} className="border-t border-slate-200 p-3">
@@ -83,13 +85,13 @@ export function RunnerPanel({
             disabled={runner.status !== 'waiting'}
             placeholder={
               runner.status === 'waiting'
-                ? 'Type your answer...'
-                : 'Runner is not waiting for input'
+                ? t('typeAnswer')
+                : t('runnerNotWaiting')
             }
             className="min-w-0 flex-1"
           />
           <BaseButton type="submit" disabled={runner.status !== 'waiting'} variant="primary">
-            Send
+            {t('send')}
           </BaseButton>
         </div>
       </form>
@@ -101,10 +103,10 @@ function isConversationMessage(message) {
   return message.role === 'user' || message.role === 'bot';
 }
 
-function TypingIndicator() {
+function TypingIndicator({ label }) {
   return (
     <div
-      aria-label="Bot is typing"
+      aria-label={label}
       className="flex w-fit items-center gap-1 rounded-lg bg-white px-3 py-3 shadow-sm"
       role="status"
     >
@@ -116,9 +118,14 @@ function TypingIndicator() {
           style={{ animationDelay: `${dot * 140}ms` }}
         />
       ))}
-      <span className="sr-only">Bot is typing</span>
+      <span className="sr-only">{label}</span>
     </div>
   );
+}
+
+function statusKey(status): TranslationKey {
+  const keys: Record<string, TranslationKey> = { idle: 'statusIdle', waiting: 'statusWaiting', running: 'statusRunning', ended: 'statusEnded', error: 'statusError', completed: 'statusCompleted' };
+  return keys[status] || 'statusIdle';
 }
 
 function RunnerMessage({ message }) {

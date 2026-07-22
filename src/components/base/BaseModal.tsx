@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { BaseButton } from './BaseButton';
+import { useLanguage } from '../../i18n';
 
 type BaseModalProps = {
   open: boolean;
@@ -10,6 +11,7 @@ type BaseModalProps = {
 };
 
 export function BaseModal({ open, title, children, onClose }: BaseModalProps) {
+  const { t } = useLanguage();
   if (!open) return null;
 
   return (
@@ -20,7 +22,7 @@ export function BaseModal({ open, title, children, onClose }: BaseModalProps) {
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
           <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
-          <BaseButton variant="secondary" size="icon-sm" onClick={onClose} title="Close modal">
+          <BaseButton variant="secondary" size="icon-sm" onClick={onClose} title={t('closeModal')}>
             <X size={16} />
           </BaseButton>
         </header>

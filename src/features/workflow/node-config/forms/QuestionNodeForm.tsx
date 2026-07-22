@@ -1,6 +1,6 @@
 import { BaseInput } from '../../../../components/base/BaseInput';
 import { BaseTextarea } from '../../../../components/base/BaseTextarea';
-import { NODE_TYPES } from '../../../../constants';
+import { useLanguage } from '../../../../i18n';
 import type { NodeFieldChange, WorkflowNode } from '../../types';
 import { NodeFormFields } from './NodeFormFields';
 
@@ -10,20 +10,18 @@ type QuestionNodeFormProps = {
 };
 
 export function QuestionNodeForm({ node, onChange }: QuestionNodeFormProps) {
-  const help = NODE_TYPES.question.fieldHelp;
+  const { t } = useLanguage();
 
   return (
     <NodeFormFields node={node} onChange={onChange}>
       <BaseTextarea
-        label="Message"
-        helpText={help.message}
+        label={t('fieldMessage')}
         value={node.data.message || ''}
         onChange={(value) => onChange('message', value)}
         rows={3}
       />
       <BaseInput
-        label="Variable"
-        helpText={help.variable}
+        label={t('fieldVariable')}
         value={node.data.variable || ''}
         onChange={(value) => onChange('variable', value)}
       />
